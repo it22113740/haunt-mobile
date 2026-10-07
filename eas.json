@@ -13,7 +13,13 @@
     "preview": {
       "distribution": "internal",
       "environment": "preview",
-      "channel": "preview"
+      "channel": "preview",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://rewards-app-backend-production-42a0.up.railway.app"
+      }
     },
     "production": {
       "autoIncrement": true,
