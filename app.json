@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "haunt-mobile",
+    "name": "Haunt",
     "slug": "haunt-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,18 +8,36 @@
     "scheme": "hauntmobile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Haunt uses your location to find nearby restaurants and bars.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Haunt uses your location in the background to notice when you arrive at a place and tell you about points you can earn.",
+        "NSLocationAlwaysUsageDescription": "Haunt uses your location in the background to notice when you arrive at a place and tell you about points you can earn.",
+        "UIBackgroundModes": [
+          "location",
+          "remote-notification"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#F4EFE8",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION",
+        "POST_NOTIFICATIONS"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "web": {
+      "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
@@ -28,12 +46,48 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#F4EFE8",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 76,
+          "dark": {
+            "backgroundColor": "#161210"
+          }
         }
-      ]
+      ],
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Haunt uses your location to find nearby restaurants and bars.",
+          "locationAlwaysAndWhenInUsePermission": "Haunt uses your location in the background to notice when you arrive at a place and tell you about points you can earn.",
+          "locationAlwaysPermission": "Haunt uses your location in the background to notice when you arrive at a place and tell you about points you can earn.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#C4512C",
+          "defaultChannel": "default",
+          "enableBackgroundRemoteNotifications": true
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Haunt uses your photos so you can submit a visit.",
+          "cameraPermission": "Haunt uses your camera to capture a visit."
+        }
+      ],
+      "expo-video"
     ],
+    "extra": {
+      "eas": {
+        "projectId": "YOUR_EAS_PROJECT_ID"
+      }
+    },
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
