@@ -1,7 +1,9 @@
+import { DotGrid } from '@/components/ui/decor';
 import type { ReactNode } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
+/** Full-screen page: paper background (with the journal dot grid) and a soft fade-in. */
 export function ScreenEnter({
   children,
   className,
@@ -13,6 +15,7 @@ export function ScreenEnter({
 }) {
   return (
     <Animated.View entering={FadeIn.duration(320)} className={className} style={[{ flex: 1 }, style]}>
+      <DotGrid />
       {children}
     </Animated.View>
   );

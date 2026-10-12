@@ -1,7 +1,7 @@
 import { Chip } from '@/components/ui/chip';
-import { PrimaryButton } from '@/features/auth/components/primary-button';
+import { Body, Label } from '@/components/ui/typography';
 import { TextField } from '@/features/auth/components/text-field';
-import { FormSection } from '@/features/owner/components/form-section';
+import { FormFooter } from '@/features/owner/components/form-parts';
 import { ImageField } from '@/features/owner/components/image-field';
 import { useSavePromotion } from '@/features/owner/hooks';
 import {
@@ -11,11 +11,12 @@ import {
   type PromotionFormValues,
 } from '@/features/owner/schemas';
 import { getApiErrorMessage } from '@/lib/api-error';
+import { useSurfaces } from '@/theme/surfaces';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Info } from 'lucide-react-native';
 import { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Controller, useForm, useWatch } from 'react-hook-form';
+import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 
 type PromotionFormProps = {
   promotion?: OwnerPromotion | null;
@@ -24,7 +25,7 @@ type PromotionFormProps = {
 };
 
 export function PromotionForm({ promotion, venues, onSaved }: PromotionFormProps) {
-  const insets = useSafeAreaInsets();
+  const { colors } = useSurfaces();
   const save = useSavePromotion(promotion?.id);
   const [formError, setFormError] = useState<string | null>(null);
   const form = useForm<PromotionFormValues>({
@@ -36,6 +37,8 @@ export function PromotionForm({ promotion, venues, onSaved }: PromotionFormProps
       imageUrl: promotion?.imageUrl ?? '',
     },
   });
+  const venueId = useWatch({ control: form.control, name: 'venueId' });
+  const venueName = promotion?.venue?.name ?? venues.find((venue) => venue.id === venueId)?.name ?? 'your place';
 
   const onSubmit = form.handleSubmit(async (values) => {
     setFormError(null);
@@ -47,29 +50,36 @@ export function PromotionForm({ promotion, venues, onSaved }: PromotionFormProps
   });
 
   return (
-    <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
-        className="flex-1"
+        style={{ flex: 1 }}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ gap: 16, paddingHorizontal: 24, paddingTop: 16, paddingBottom: 24 }}>
-        <FormSection title="Photo">
-          <Controller
-            control={form.control}
-            name="imageUrl"
-            render={({ field }) => <ImageField url={field.value} onChange={field.onChange} />}
-          />
-        </FormSection>
-        <FormSection title="Details">
+        contentContainerStyle={{ gap: 26, paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40 }}>
+        <Controller
+          control={form.control}
+          name="imageUrl"
+          render={({ field }) => (
+            <ImageField
+              url={field.value}
+              onChange={field.onChange}
+              height={190}
+              hint="Optional, but offers with a photo get noticed"
+            />
+          )}
+        />
+        <View style={{ gap: 8 }}>
+          <Label>For</Label>
           {promotion ? (
-            <Text className="font-sans text-body text-haunt-mute">{promotion.venue?.name ?? 'This place'}</Text>
+            <View style={{ flexDirection: 'row' }}>
+              <Chip label={promotion.venue?.name ?? 'This place'} selected />
+            </View>
           ) : (
             <Controller
               control={form.control}
               name="venueId"
               render={({ field, fieldState }) => (
-                <View>
-                  <Text className="mb-2 font-sans text-caption text-haunt-mute">Place</Text>
-                  <View className="flex-row flex-wrap gap-2">
+                <View style={{ gap: 8 }}>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                     {venues.map((venue) => (
                       <Chip
                         key={venue.id}
@@ -80,52 +90,59 @@ export function PromotionForm({ promotion, venues, onSaved }: PromotionFormProps
                     ))}
                   </View>
                   {fieldState.error ? (
-                    <Text className="mt-2 font-sans text-caption text-haunt-danger">{fieldState.error.message}</Text>
+                    <Body size={13} color={colors.danger}>
+                      {fieldState.error.message}
+                    </Body>
                   ) : null}
                 </View>
               )}
             />
           )}
-          <Controller
-            control={form.control}
-            name="title"
-            render={({ field, fieldState }) => (
-              <TextField
-                label="Title"
-                value={field.value}
-                onChangeText={field.onChange}
-                onBlur={field.onBlur}
-                error={fieldState.error?.message}
-                placeholder="Happy hour"
-                autoCapitalize="sentences"
-              />
-            )}
-          />
-          <Controller
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <TextField
-                label="Details"
-                value={field.value}
-                onChangeText={field.onChange}
-                onBlur={field.onBlur}
-                placeholder="What guests should know"
-                autoCapitalize="sentences"
-                multiline
-              />
-            )}
-          />
-        </FormSection>
-      </ScrollView>
-      <View className="bg-haunt-paper px-6 pt-4" style={{ paddingBottom: Math.max(insets.bottom, 16) }}>
-        {formError ? <Text className="mb-3 font-sans text-caption text-haunt-danger">{formError}</Text> : null}
-        <PrimaryButton
-          label={promotion ? 'Save promotion' : 'Publish promotion'}
-          onPress={() => void onSubmit()}
-          loading={save.isPending}
+        </View>
+        <Controller
+          control={form.control}
+          name="title"
+          render={({ field, fieldState }) => (
+            <TextField
+              label="Headline"
+              value={field.value}
+              onChangeText={field.onChange}
+              onBlur={field.onBlur}
+              error={fieldState.error?.message}
+              placeholder="Sunset happy hour"
+              autoCapitalize="sentences"
+              displaySize={22}
+            />
+          )}
         />
-      </View>
+        <Controller
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <TextField
+              label="The details"
+              value={field.value}
+              onChangeText={field.onChange}
+              onBlur={field.onBlur}
+              placeholder="Half price drinks from 5 to 7, every weekday."
+              autoCapitalize="sentences"
+              multiline
+            />
+          )}
+        />
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <Info color={colors.mute} size={16} strokeWidth={1.8} style={{ marginTop: 1 }} />
+          <Body size={13} color={colors.mute} style={{ flex: 1 }}>
+            {`Guests see this on ${venueName}’s page and in their Offers tab.`}
+          </Body>
+        </View>
+      </ScrollView>
+      <FormFooter
+        label={promotion ? 'Save offer' : 'Post offer'}
+        onPress={() => void onSubmit()}
+        loading={save.isPending}
+        error={formError}
+      />
     </KeyboardAvoidingView>
   );
 }

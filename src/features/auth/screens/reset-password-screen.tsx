@@ -1,20 +1,17 @@
-import { AuthScaffold } from '@/features/auth/components/auth-scaffold';
+import { Hand } from '@/components/ui/typography';
+import { AuthScaffold, FormError, InlineLink } from '@/features/auth/components/auth-scaffold';
 import { PrimaryButton } from '@/features/auth/components/primary-button';
 import { TextField } from '@/features/auth/components/text-field';
 import { useForgotPassword, useResetPassword } from '@/features/auth/hooks';
 import { resetPasswordSchema, type ResetPasswordValues } from '@/features/auth/schemas';
 import { getApiErrorMessage } from '@/lib/api-error';
-import { useHauntColors } from '@/theme/colors';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Lock, Mail } from 'lucide-react-native';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Pressable, Text } from 'react-native';
 
 export function ResetPasswordScreen() {
   const router = useRouter();
-  const colors = useHauntColors();
   const params = useLocalSearchParams<{ email?: string }>();
   const initialEmail = typeof params.email === 'string' ? params.email : '';
   const reset = useResetPassword();
@@ -57,12 +54,11 @@ export function ResetPasswordScreen() {
   if (done) {
     return (
       <AuthScaffold
+        illustration="success-sent"
         title="Password updated"
-        subtitle="Sign in with your new password."
+        subtitle="Your password is saved. The next sign-in uses this one."
         footer={<PrimaryButton label="Sign in" onPress={() => router.replace('/(auth)/login')} />}>
-        <Text className="text-base text-haunt-ink">
-          Your password is saved. The next sign-in uses this one.
-        </Text>
+        <Hand>all set, go grab a drink</Hand>
       </AuthScaffold>
     );
   }
@@ -77,8 +73,8 @@ export function ResetPasswordScreen() {
       }}
       footer={
         <>
-          {formError ? <Text className="mb-3 text-center text-sm text-haunt-danger">{formError}</Text> : null}
-          {notice ? <Text className="mb-3 text-center text-sm text-haunt-ink">{notice}</Text> : null}
+          <FormError message={formError} />
+          <FormError message={notice} tone="info" />
           <PrimaryButton label="Update password" onPress={onSubmit} loading={reset.isPending} />
         </>
       }>
@@ -94,7 +90,6 @@ export function ResetPasswordScreen() {
             error={fieldState.error?.message}
             keyboardType="email-address"
             autoComplete="email"
-            leftIcon={<Mail color={colors.mute} size={18} />}
           />
         )}
       />
@@ -110,6 +105,7 @@ export function ResetPasswordScreen() {
             error={fieldState.error?.message}
             keyboardType="number-pad"
             maxLength={6}
+            large
             centered
             placeholder="000000"
           />
@@ -127,21 +123,17 @@ export function ResetPasswordScreen() {
             error={fieldState.error?.message}
             secure
             autoComplete="new-password"
-            placeholder="At least 8 characters"
-            leftIcon={<Lock color={colors.mute} size={18} />}
+            placeholder="8 characters or more"
           />
         )}
       />
-      <Pressable
-        accessibilityRole="button"
+      <InlineLink
+        label={resend.isPending ? 'Sending…' : 'Send a new code'}
+        align="center"
         onPress={() => {
           void onResend();
         }}
-        className="h-11 items-center justify-center">
-        <Text className="text-sm font-semibold text-haunt-ink">
-          {resend.isPending ? 'Sending…' : 'Send a new code'}
-        </Text>
-      </Pressable>
+      />
     </AuthScaffold>
   );
 }

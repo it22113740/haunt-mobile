@@ -1,6 +1,9 @@
+import { Card } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
-import { PrimaryButton } from '@/features/auth/components/primary-button';
+import { DashRule } from '@/components/ui/decor';
+import { Body, Hand, Label } from '@/components/ui/typography';
 import { TextField } from '@/features/auth/components/text-field';
+import { BigNumberInput, FormFooter } from '@/features/owner/components/form-parts';
 import { FormSection } from '@/features/owner/components/form-section';
 import { ImageField } from '@/features/owner/components/image-field';
 import { PinPicker } from '@/features/owner/components/pin-picker';
@@ -8,13 +11,21 @@ import { RadiusSlider } from '@/features/owner/components/radius-slider';
 import { useSaveVenue } from '@/features/owner/hooks';
 import { venueFormSchema, type OwnerVenue, type VenueFormValues } from '@/features/owner/schemas';
 import { getApiErrorMessage } from '@/lib/api-error';
+import { useSurfaces } from '@/theme/surfaces';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 
 const categories = ['Restaurant', 'Bar', 'Cafe', 'Pub', 'Lounge', 'Other'] as const;
+const categoryLabel: Record<(typeof categories)[number], string> = {
+  Restaurant: 'Restaurant',
+  Bar: 'Bar',
+  Cafe: 'Café',
+  Pub: 'Pub',
+  Lounge: 'Lounge',
+  Other: 'Something else',
+};
 
 type VenueFormProps = {
   venue?: OwnerVenue | null;
@@ -23,7 +34,7 @@ type VenueFormProps = {
 };
 
 export function VenueForm({ venue, origin, onSaved }: VenueFormProps) {
-  const insets = useSafeAreaInsets();
+  const { colors, isJournal } = useSurfaces();
   const save = useSaveVenue(venue?.id);
   const [formError, setFormError] = useState<string | null>(null);
   const known = categories.find((item) => item === venue?.category);
@@ -53,19 +64,17 @@ export function VenueForm({ venue, origin, onSaved }: VenueFormProps) {
   });
 
   return (
-    <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
-        className="flex-1"
+        style={{ flex: 1 }}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ gap: 16, paddingHorizontal: 24, paddingTop: 16, paddingBottom: 24 }}>
-        <FormSection title="Photo">
-          <Controller
-            control={form.control}
-            name="imageUrl"
-            render={({ field }) => <ImageField url={field.value} onChange={field.onChange} />}
-          />
-        </FormSection>
-        <FormSection title="Details">
+        contentContainerStyle={{ gap: 30, paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40 }}>
+        <Controller
+          control={form.control}
+          name="imageUrl"
+          render={({ field }) => <ImageField url={field.value} onChange={field.onChange} />}
+        />
+        <FormSection step="01" title="The basics">
           <Controller
             control={form.control}
             name="name"
@@ -76,8 +85,9 @@ export function VenueForm({ venue, origin, onSaved }: VenueFormProps) {
                 onChangeText={field.onChange}
                 onBlur={field.onBlur}
                 error={fieldState.error?.message}
-                placeholder="The place guests know"
+                placeholder="What’s on the sign outside"
                 autoCapitalize="words"
+                displaySize={20}
               />
             )}
           />
@@ -85,20 +95,22 @@ export function VenueForm({ venue, origin, onSaved }: VenueFormProps) {
             control={form.control}
             name="category"
             render={({ field, fieldState }) => (
-              <View>
-                <Text className="mb-2 font-sans text-caption text-haunt-mute">Category</Text>
-                <View className="flex-row flex-wrap gap-2">
+              <View style={{ gap: 8 }}>
+                <Label>Kind of place</Label>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                   {categories.map((category) => (
                     <Chip
                       key={category}
-                      label={category}
+                      label={categoryLabel[category]}
                       selected={field.value === category}
                       onPress={() => field.onChange(category)}
                     />
                   ))}
                 </View>
                 {fieldState.error ? (
-                  <Text className="mt-2 font-sans text-caption text-haunt-danger">{fieldState.error.message}</Text>
+                  <Body size={13} color={colors.danger}>
+                    {fieldState.error.message}
+                  </Body>
                 ) : null}
               </View>
             )}
@@ -123,18 +135,22 @@ export function VenueForm({ venue, origin, onSaved }: VenueFormProps) {
             name="description"
             render={({ field }) => (
               <TextField
-                label="Description"
+                label="A line for guests"
                 value={field.value}
                 onChangeText={field.onChange}
                 onBlur={field.onBlur}
-                placeholder="What guests should know"
+                placeholder="Cold beer, a sea breeze and a quiz every Thursday."
                 autoCapitalize="sentences"
                 multiline
               />
             )}
           />
         </FormSection>
-        <FormSection title="Location">
+        <FormSection
+          step="02"
+          title="Where it counts"
+          hint="Drag the pin to your door. Guests have to be inside the circle for a visit to count."
+          gap={14}>
           <Controller
             control={form.control}
             name="lat"
@@ -146,8 +162,8 @@ export function VenueForm({ venue, origin, onSaved }: VenueFormProps) {
                   <Controller
                     control={form.control}
                     name="radiusMeters"
-                    render={({ field: radiusField }) => (
-                      <View className="gap-4">
+                    render={({ field: radiusField, fieldState }) => (
+                      <View style={{ gap: 18 }}>
                         <PinPicker
                           lat={latField.value}
                           lng={lngField.value}
@@ -158,6 +174,11 @@ export function VenueForm({ venue, origin, onSaved }: VenueFormProps) {
                           }}
                         />
                         <RadiusSlider value={radiusField.value} onChange={radiusField.onChange} />
+                        {fieldState.error ? (
+                          <Body size={13} color={colors.danger}>
+                            {fieldState.error.message}
+                          </Body>
+                        ) : null}
                       </View>
                     )}
                   />
@@ -166,45 +187,45 @@ export function VenueForm({ venue, origin, onSaved }: VenueFormProps) {
             )}
           />
         </FormSection>
-        <FormSection title="Rewards">
-          <View className="flex-row gap-4">
-            <PointField control={form.control} name="pointsPerPhoto" label="Points per photo" />
-            <PointField control={form.control} name="pointsPerVideo" label="Points per video" />
-          </View>
+        <FormSection step="03" title="What a visit earns" gap={14}>
+          <Card style={{ flexDirection: 'row' }}>
+            <Controller
+              control={form.control}
+              name="pointsPerPhoto"
+              render={({ field, fieldState }) => (
+                <BigNumberInput
+                  label="Per photo"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  error={fieldState.error?.message}
+                />
+              )}
+            />
+            <DashRule vertical color={colors.lineStrong} width={isJournal ? 1.5 : 1} />
+            <Controller
+              control={form.control}
+              name="pointsPerVideo"
+              render={({ field, fieldState }) => (
+                <BigNumberInput
+                  label="Per video"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  error={fieldState.error?.message}
+                />
+              )}
+            />
+          </Card>
+          <Hand>videos take more effort, so they’re worth more</Hand>
         </FormSection>
       </ScrollView>
-      <View className="bg-haunt-paper px-6 pt-4" style={{ paddingBottom: Math.max(insets.bottom, 16) }}>
-        {formError ? <Text className="mb-3 font-sans text-caption text-haunt-danger">{formError}</Text> : null}
-        <PrimaryButton label={venue ? 'Save place' : 'Create place'} onPress={() => void onSubmit()} loading={save.isPending} />
-      </View>
-    </KeyboardAvoidingView>
-  );
-}
-
-function PointField({
-  control,
-  name,
-  label,
-}: {
-  control: ReturnType<typeof useForm<VenueFormValues>>['control'];
-  name: 'pointsPerPhoto' | 'pointsPerVideo';
-  label: string;
-}) {
-  return (
-    <View className="flex-1">
-      <Controller
-        control={control}
-        name={name}
-        render={({ field }) => (
-          <TextField
-            label={label}
-            value={String(field.value)}
-            keyboardType="number-pad"
-            onChangeText={(text) => field.onChange(Number(text.replace(/\D/g, '')) || 0)}
-            onBlur={field.onBlur}
-          />
-        )}
+      <FormFooter
+        label={venue ? 'Save place' : 'Add place'}
+        onPress={() => void onSubmit()}
+        loading={save.isPending}
+        error={formError}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 }

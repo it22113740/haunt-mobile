@@ -1,52 +1,137 @@
-import type { Venue } from '@/features/venues/schemas';
-import { useHauntColors } from '@/theme/colors';
-import { View } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import { MapPin, sketchStyle } from '@/features/venues/components/map-style';
+import { distanceMeters, type Venue } from '@/features/venues/schemas';
+import { useHauntColors, type HauntColors } from '@/theme/colors';
+import { useEffect, useState } from 'react';
+import { Platform, Text, View } from 'react-native';
+import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 
 type VenueMapProps = {
   venues: Venue[];
   latitude?: number;
   longitude?: number;
   onSelect: (venueId: string) => void;
+  height?: number;
 };
 
-export function VenueMap({ venues, latitude, longitude, onSelect }: VenueMapProps) {
+const LABEL_WIDTH = 120;
+const PIN_WIDTH = 30;
+
+export function VenueMap({ venues, latitude, longitude, onSelect, height = 210 }: VenueMapProps) {
   const colors = useHauntColors();
-  const first = venues[0];
+  const user = latitude !== undefined && longitude !== undefined ? { lat: latitude, lng: longitude } : null;
+  const nearest = user
+    ? venues.reduce<Venue | undefined>(
+        (best, venue) => (!best || distanceMeters(user, venue) < distanceMeters(user, best) ? venue : best),
+        undefined,
+      )
+    : venues[0];
 
   return (
-    <View className="mx-6 h-[220px] overflow-hidden rounded-3xl shadow-card" style={{ elevation: 4 }}>
+    <View style={{ height, backgroundColor: colors.mapBg }}>
       <MapView
+        provider={PROVIDER_DEFAULT}
         style={{ flex: 1 }}
+        mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
+        customMapStyle={Platform.OS === 'android' ? sketchStyle(colors) : undefined}
+        showsPointsOfInterests={false}
+        toolbarEnabled={false}
+        accessibilityLabel={`Map with ${venues.length} ${venues.length === 1 ? 'place' : 'places'}`}
         initialRegion={{
-          latitude: latitude ?? first?.lat ?? 6.9271,
-          longitude: longitude ?? first?.lng ?? 79.8612,
+          latitude: latitude ?? nearest?.lat ?? 6.9271,
+          longitude: longitude ?? nearest?.lng ?? 79.8612,
           latitudeDelta: 0.04,
           longitudeDelta: 0.04,
         }}>
-        {venues.map((venue) => (
+        {user && nearest ? (
+          <Polyline
+            coordinates={[
+              { latitude: user.lat, longitude: user.lng },
+              { latitude: nearest.lat, longitude: nearest.lng },
+            ]}
+            strokeColor={colors.ink}
+            strokeWidth={1.4}
+            lineDashPattern={[3, 4]}
+          />
+        ) : null}
+        {user ? (
           <Marker
-            key={venue.id}
-            coordinate={{ latitude: venue.lat, longitude: venue.lng }}
-            title={venue.name}
-            onPress={() => onSelect(venue.id)}
-            tracksViewChanges={false}>
+            coordinate={{ latitude: user.lat, longitude: user.lng }}
+            anchor={{ x: 0.5, y: 0.5 }}
+            tracksViewChanges={false}
+            accessibilityLabel="You are here">
             <View
               style={{
-                width: 28,
-                height: 28,
-                borderRadius: 14,
-                backgroundColor: colors.accent,
-                borderWidth: 2,
-                borderColor: colors.onAccent,
+                width: 14,
+                height: 14,
+                borderRadius: 7,
+                backgroundColor: colors.card,
+                borderWidth: 1.6,
+                borderColor: colors.ink,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-              <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.onAccent }} />
+              <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: colors.ink }} />
             </View>
           </Marker>
+        ) : null}
+        {venues.map((venue) => (
+          <VenueMarker
+            key={venue.id}
+            venue={venue}
+            primary={venue.id === nearest?.id}
+            colors={colors}
+            onPress={() => onSelect(venue.id)}
+          />
         ))}
       </MapView>
     </View>
+  );
+}
+
+/** Pin with its handwritten name to the right; the empty left column keeps the pin tip on the anchor. */
+function VenueMarker({
+  venue,
+  primary,
+  colors,
+  onPress,
+}: {
+  venue: Venue;
+  primary: boolean;
+  colors: HauntColors;
+  onPress: () => void;
+}) {
+  // Android snapshots custom marker views; keep tracking briefly so the label font has rendered first.
+  const [tracking, setTracking] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setTracking(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <Marker
+      coordinate={{ latitude: venue.lat, longitude: venue.lng }}
+      anchor={{ x: 0.5, y: 1 }}
+      onPress={onPress}
+      tracksViewChanges={tracking}
+      accessibilityLabel={venue.name}>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+        <View style={{ width: LABEL_WIDTH }} />
+        <View style={{ width: PIN_WIDTH }}>
+          <MapPin colors={colors} size={PIN_WIDTH} />
+        </View>
+        <Text
+          numberOfLines={1}
+          style={{
+            width: LABEL_WIDTH,
+            paddingLeft: 3,
+            marginTop: 2,
+            fontFamily: 'Caveat_600SemiBold',
+            fontSize: primary ? 20 : 18,
+            color: primary ? colors.accentDeep : colors.mute,
+          }}>
+          {venue.name}
+        </Text>
+      </View>
+    </Marker>
   );
 }

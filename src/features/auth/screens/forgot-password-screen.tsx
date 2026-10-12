@@ -1,20 +1,16 @@
-import { AuthScaffold } from '@/features/auth/components/auth-scaffold';
+import { AuthScaffold, FormError } from '@/features/auth/components/auth-scaffold';
 import { PrimaryButton } from '@/features/auth/components/primary-button';
 import { TextField } from '@/features/auth/components/text-field';
 import { useForgotPassword } from '@/features/auth/hooks';
 import { forgotPasswordSchema, type ForgotPasswordValues } from '@/features/auth/schemas';
 import { getApiErrorMessage } from '@/lib/api-error';
-import { useHauntColors } from '@/theme/colors';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'expo-router';
-import { Mail } from 'lucide-react-native';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Text } from 'react-native';
 
 export function ForgotPasswordScreen() {
   const router = useRouter();
-  const colors = useHauntColors();
   const forgot = useForgotPassword();
   const [formError, setFormError] = useState<string | null>(null);
   const form = useForm<ForgotPasswordValues>({
@@ -42,7 +38,7 @@ export function ForgotPasswordScreen() {
       }}
       footer={
         <>
-          {formError ? <Text className="mb-3 text-center text-sm text-haunt-danger">{formError}</Text> : null}
+          <FormError message={formError} />
           <PrimaryButton label="Send code" onPress={onSubmit} loading={forgot.isPending} />
         </>
       }>
@@ -59,7 +55,6 @@ export function ForgotPasswordScreen() {
             keyboardType="email-address"
             autoComplete="email"
             placeholder="you@email.com"
-            leftIcon={<Mail color={colors.mute} size={18} />}
           />
         )}
       />

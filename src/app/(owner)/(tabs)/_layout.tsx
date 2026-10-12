@@ -1,8 +1,8 @@
 import { ScreenState } from '@/components/screen-state';
+import { CodesIcon, OffersIcon, PerksIcon, PlacesIcon, ReviewIcon } from '@/components/ui/hunt-icons';
 import { FloatingTabBar } from '@/components/ui/tab-bar';
 import { useProfile } from '@/features/profile/hooks';
 import { Tabs, useRouter } from 'expo-router';
-import { ClipboardCheck, Gift, Megaphone, Store, Ticket } from 'lucide-react-native';
 import { useEffect } from 'react';
 
 export default function OwnerTabsLayout() {
@@ -29,7 +29,7 @@ export default function OwnerTabsLayout() {
 
   return (
     <Tabs
-      tabBar={(props) => <FloatingTabBar {...props} raisedRoute="perks" />}
+      tabBar={(props) => <FloatingTabBar {...props} raisedRoute="review" />}
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
@@ -42,36 +42,36 @@ export default function OwnerTabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Venues',
-          tabBarIcon: ({ color, size }) => <Store color={color} size={size} />,
+          title: 'Places',
+          tabBarIcon: ({ color, size }) => <PlacesIcon color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="promotions"
         options={{
-          title: 'Promotions',
-          tabBarIcon: ({ color, size }) => <Megaphone color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="perks"
-        options={{
-          title: 'Perks',
-          tabBarIcon: ({ color, size }) => <Gift color={color} size={size} />,
+          title: 'Offers',
+          tabBarIcon: ({ color, size }) => <OffersIcon color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="review"
         options={{
           title: 'Review',
-          tabBarIcon: ({ color, size }) => <ClipboardCheck color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => <ReviewIcon color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="perks"
+        options={{
+          title: 'Perks',
+          tabBarIcon: ({ color, size }) => <PerksIcon color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="redemptions"
         options={{
           title: 'Codes',
-          tabBarIcon: ({ color, size }) => <Ticket color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => <CodesIcon color={color} size={size} />,
         }}
       />
     </Tabs>

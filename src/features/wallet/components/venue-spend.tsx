@@ -1,14 +1,29 @@
-import { CachedImage } from '@/components/cached-image';
-import { Badge } from '@/components/ui/badge';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
-import { PointsPill } from '@/components/ui/points-pill';
-import { useVenuePerks } from '@/features/venues/hooks';
+import { DashRule, Rule, Ticks } from '@/components/ui/decor';
+import { hapticLight } from '@/components/ui/press';
+import { Body, H2, Hand, Label, Mono, ScribbleUnderline } from '@/components/ui/typography';
+import { perkSubtitle } from '@/features/venues/components/perk-carousel';
+import { useVenue, useVenuePerks } from '@/features/venues/hooks';
 import type { Perk } from '@/features/venues/schemas';
 import type { VenuePoints } from '@/features/wallet/schemas';
+import { useSurfaces } from '@/theme/surfaces';
+import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-const typeLabel = { DISCOUNT: 'Discount', FREE_MEAL: 'Free meal', OTHER: 'Perk' } as const;
+const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+
+function shotsNote(missing: number, pointsPerPhoto?: number) {
+  if (missing <= 0) return 'it’s yours, enjoy';
+  if (!pointsPerPhoto) return 'a few more visits and it’s yours';
+  const photos = Math.ceil(missing / pointsPerPhoto);
+  const count = WORDS[photos] ?? String(photos);
+  return `${count} more ${photos === 1 ? 'photo' : 'photos'} and it’s yours`;
+}
+
+function cheapestOf(perks?: Perk[]) {
+  return perks?.reduce<Perk | null>((best, perk) => (!best || perk.pointsRequired < best.pointsRequired ? perk : best), null);
+}
 
 export function VenueSpend({
   venue,
@@ -23,35 +38,33 @@ export function VenueSpend({
   onRedeem: (perkId: string) => void;
   redeemingId: string | null;
 }) {
+  const { colors, surfaces } = useSurfaces();
   const perks = useVenuePerks(venue.venueId);
-  const cheapest = perks.data?.reduce<Perk | null>((best, perk) => {
-    if (!best || perk.pointsRequired < best.pointsRequired) return perk;
-    return best;
-  }, null);
+  const cheapest = cheapestOf(perks.data);
   const short = cheapest ? Math.max(cheapest.pointsRequired - venue.points, 0) : 0;
   const ratio = cheapest && cheapest.pointsRequired > 0 ? Math.min(1, venue.points / cheapest.pointsRequired) : 0;
 
   return (
-    <View className="rounded-3xl bg-haunt-card p-5 shadow-card" style={{ elevation: 4 }}>
-      <Text className="font-display text-title text-haunt-ink">{venue.venueName}</Text>
-      <Text className="mt-1 font-display-extra text-display-lg text-haunt-ink">{venue.points}</Text>
-      {cheapest ? (
-        <>
-          <Text className="mt-2 font-sans text-caption text-haunt-mute">
-            {short > 0 ? `${short} more for ${cheapest.title}` : `Ready for ${cheapest.title}`}
-          </Text>
-          <View className="mt-3 h-1.5 overflow-hidden rounded-full bg-haunt-blush">
-            <View className="h-1.5 rounded-full bg-haunt-accent" style={{ width: `${Math.round(ratio * 100)}%` }} />
-          </View>
-        </>
-      ) : null}
-      <View className="mt-4">
-        <Button size="md" label="Redeem" onPress={onToggle} />
+    <View style={[surfaces.soft, { padding: 16, gap: 14 }]}>
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
+        <Body size={18} weight="bold" style={{ flex: 1 }} numberOfLines={1}>
+          {venue.venueName}
+        </Body>
+        <Mono size={15} medium color={colors.ink}>{`${venue.points} pts`}</Mono>
       </View>
-      <BottomSheet visible={open} onClose={onToggle}>
-        <Text className="font-display text-title text-haunt-ink">{venue.venueName}</Text>
-        <PerkChoices
-          points={venue.points}
+      {cheapest ? (
+        <View style={{ gap: 6 }}>
+          <Ticks progress={ratio} />
+          <Text style={{ fontFamily: 'BricolageGrotesque_400Regular', fontSize: 14, color: colors.mute }}>
+            {short > 0 ? `${short} more for a ` : 'Enough for a '}
+            <Text style={{ fontFamily: 'BricolageGrotesque_700Bold', color: colors.ink }}>{cheapest.title}</Text>
+          </Text>
+        </View>
+      ) : null}
+      <Button size="sm" variant="secondary" label="See perks" onPress={onToggle} />
+      <BottomSheet visible={open} onClose={onToggle} accessibilityLabel={`Perks at ${venue.venueName}`}>
+        <PerkSheet
+          venue={venue}
           perks={perks.data}
           pending={perks.isPending}
           error={perks.isError}
@@ -64,8 +77,8 @@ export function VenueSpend({
   );
 }
 
-function PerkChoices({
-  points,
+function PerkSheet({
+  venue,
   perks,
   pending,
   error,
@@ -73,7 +86,7 @@ function PerkChoices({
   redeemingId,
   onRedeem,
 }: {
-  points: number;
+  venue: VenuePoints;
   perks?: Perk[];
   pending: boolean;
   error: boolean;
@@ -81,44 +94,130 @@ function PerkChoices({
   redeemingId: string | null;
   onRedeem: (perkId: string) => void;
 }) {
-  if (pending) return <Text className="mt-4 font-sans text-caption text-haunt-mute">Loading perks…</Text>;
-  if (error) {
-    return (
-      <Pressable onPress={onRetry} className="mt-4">
-        <Text className="font-sans-semibold text-body text-haunt-accent">Couldn’t load perks. Try again.</Text>
-      </Pressable>
-    );
-  }
-  if (!perks?.length) return <Text className="mt-4 font-sans text-caption text-haunt-mute">No perks at this venue.</Text>;
+  const { colors, isWhite } = useSurfaces();
+  const details = useVenue(venue.venueId).venue;
+  const affordable = perks?.find((perk) => perk.pointsRequired <= venue.points);
+  const [pickedId, setPickedId] = useState<string | null>(null);
+  const picked = perks?.find((perk) => perk.id === pickedId) ?? affordable ?? cheapestOf(perks) ?? null;
+  const missing = picked ? Math.max(picked.pointsRequired - venue.points, 0) : 0;
+  const note = shotsNote(missing, details?.pointsPerPhoto);
 
   return (
-    <View className="mt-4 gap-3">
-      {perks.map((perk) => {
-        const missing = Math.max(perk.pointsRequired - points, 0);
-        return (
-          <View key={perk.id} className={`flex-row items-center ${missing > 0 ? 'opacity-50' : ''}`}>
-            {perk.imageUrl ? (
-              <CachedImage source={{ uri: perk.imageUrl }} style={{ width: 56, height: 56, borderRadius: 16 }} contentFit="cover" />
-            ) : (
-              <View className="h-14 w-14 rounded-2xl bg-haunt-blush" />
-            )}
-            <View className="ml-3 flex-1">
-              <Badge label={typeLabel[perk.type]} tone="accent" />
-              <Text className="mt-1 font-sans-semibold text-body text-haunt-ink">{perk.title}</Text>
-              <View className="mt-1">
-                <PointsPill value={`${perk.pointsRequired} pts`} />
-              </View>
-            </View>
-            <View className="ml-2">
-              {missing > 0 ? (
-                <Text className="font-sans-semibold text-caption text-haunt-mute">Need {missing} more</Text>
-              ) : (
-                <Button size="sm" label="Redeem" loading={redeemingId === perk.id} onPress={() => onRedeem(perk.id)} />
-              )}
-            </View>
-          </View>
-        );
-      })}
+    <View style={{ gap: 20 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>
+        <View style={{ gap: 4, flex: 1 }}>
+          <Label>Spend at</Label>
+          <H2 size={24} numberOfLines={1}>
+            {venue.venueName}
+          </H2>
+        </View>
+        <Text style={{ fontFamily: 'IBMPlexMono_400Regular', fontSize: 14, color: colors.ink }}>
+          {'You have '}
+          <Text style={{ fontFamily: 'IBMPlexMono_600SemiBold' }}>{venue.points}</Text>
+          {' pts'}
+        </Text>
+      </View>
+
+      {pending ? <Body color={colors.mute}>Loading perks…</Body> : null}
+      {error ? (
+        <Pressable accessibilityRole="button" onPress={onRetry}>
+          <Body weight="semibold" color={colors.accentDeep}>
+            Couldn’t load perks. Tap to try again.
+          </Body>
+        </Pressable>
+      ) : null}
+      {!pending && !error && !perks?.length ? <Body color={colors.mute}>No perks at this place yet.</Body> : null}
+
+      {perks?.length ? (
+        <View accessibilityRole="radiogroup" style={{ gap: 10 }}>
+          {perks.map((perk) => (
+            <PerkRow
+              key={perk.id}
+              perk={perk}
+              points={venue.points}
+              selected={picked?.id === perk.id}
+              selectable={perks.length > 1}
+              onPress={() => {
+                hapticLight();
+                setPickedId(perk.id);
+              }}
+            />
+          ))}
+        </View>
+      ) : null}
+
+      {picked ? (
+        <View style={{ gap: 10, alignItems: 'center' }}>
+          <Button
+            className="self-stretch"
+            label={missing > 0 ? `${missing} more points to go` : `Swap ${picked.pointsRequired} pts for a code`}
+            disabled={missing > 0}
+            loading={redeemingId === picked.id}
+            onPress={() => onRedeem(picked.id)}
+          />
+          {isWhite ? (
+            <ScribbleUnderline color={colors.accentDeep} style={{ alignSelf: 'center' }}>
+              <Hand>{note}</Hand>
+            </ScribbleUnderline>
+          ) : (
+            <Hand>{note}</Hand>
+          )}
+        </View>
+      ) : null}
+
+      <Rule />
+      <Body size={13} color={colors.mute} style={{ lineHeight: 20 }}>
+        When you swap points, you get a code. Show it at the bar and they’ll mark it used. Each code works once.
+      </Body>
     </View>
+  );
+}
+
+function PerkRow({
+  perk,
+  points,
+  selected,
+  selectable,
+  onPress,
+}: {
+  perk: Perk;
+  points: number;
+  selected: boolean;
+  selectable: boolean;
+  onPress: () => void;
+}) {
+  const { colors, surfaces, isJournal } = useSurfaces();
+  const ratio = perk.pointsRequired > 0 ? Math.min(1, points / perk.pointsRequired) : 1;
+  return (
+    <Pressable
+      accessibilityRole={selectable ? 'radio' : undefined}
+      accessibilityState={selectable ? { checked: selected } : undefined}
+      accessibilityLabel={`${perk.title}, ${perk.pointsRequired} points`}
+      disabled={!selectable}
+      onPress={onPress}
+      style={[
+        surfaces.soft,
+        { flexDirection: 'row', alignItems: 'stretch', overflow: 'hidden' },
+        selectable && selected ? { borderColor: isJournal ? colors.ink : colors.lineStrong, borderWidth: 1.5 } : null,
+      ]}>
+      <View style={{ flex: 1, padding: 16, gap: 10 }}>
+        <View style={{ gap: 3 }}>
+          <Body size={18} weight="bold">
+            {perk.title}
+          </Body>
+          <Body size={14} color={colors.mute}>
+            {perkSubtitle(perk)}
+          </Body>
+        </View>
+        <Ticks progress={ratio} />
+      </View>
+      <DashRule vertical width={isJournal ? 1.5 : 1} />
+      <View style={{ width: 96, alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+        <Body size={28} weight="extra" style={{ letterSpacing: -0.84, lineHeight: 32 }}>
+          {perk.pointsRequired}
+        </Body>
+        <Mono size={11}>POINTS</Mono>
+      </View>
+    </Pressable>
   );
 }

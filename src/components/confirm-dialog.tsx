@@ -1,5 +1,8 @@
-import { hapticLight } from '@/components/ui/press';
-import { Modal, Pressable, Text, View } from 'react-native';
+import { Button } from '@/components/ui/button';
+import { H2, Sub } from '@/components/ui/typography';
+import { useSurfaces } from '@/theme/surfaces';
+import { Modal, View } from 'react-native';
+import Animated, { ZoomIn } from 'react-native-reanimated';
 
 type ConfirmDialogProps = {
   visible: boolean;
@@ -20,33 +23,29 @@ export function ConfirmDialog({
   onConfirm,
   onClose,
 }: ConfirmDialogProps) {
+  const { colors, surfaces } = useSurfaces();
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View className="flex-1 items-center justify-center bg-black/40 px-6">
-        <View className="w-full rounded-3xl bg-haunt-card p-8">
-          <Text className="text-2xl font-semibold text-haunt-ink">{title}</Text>
-          <Text className="mt-3 text-base text-haunt-mute">{detail}</Text>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => {
-              hapticLight();
-              onConfirm();
-            }}
-            className={`mt-8 h-14 items-center justify-center rounded-2xl ${tone === 'danger' ? 'bg-haunt-danger' : 'bg-haunt-accent'}`}>
-            <Text className={`text-base font-semibold ${tone === 'danger' ? 'text-haunt-paper' : 'text-haunt-onAccent'}`}>
-              {confirmLabel}
-            </Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => {
-              hapticLight();
-              onClose();
-            }}
-            className="mt-2 h-12 items-center justify-center">
-            <Text className="text-base font-semibold text-haunt-ink">Cancel</Text>
-          </Pressable>
-        </View>
+    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingHorizontal: 20,
+          backgroundColor: colors.scrim,
+        }}>
+        <Animated.View
+          entering={ZoomIn.duration(200)}
+          accessibilityViewIsModal
+          accessibilityRole="alert"
+          style={[surfaces.raised, { width: '100%', maxWidth: 420, padding: 22, gap: 8 }]}>
+          <H2 size={22}>{title}</H2>
+          <Sub>{detail}</Sub>
+          <View style={{ marginTop: 18, gap: 10 }}>
+            <Button label={confirmLabel} variant={tone === 'danger' ? 'danger' : 'primary'} onPress={onConfirm} />
+            <Button label="Cancel" variant="secondary" onPress={onClose} />
+          </View>
+        </Animated.View>
       </View>
     </Modal>
   );

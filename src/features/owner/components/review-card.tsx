@@ -1,30 +1,40 @@
+import { MotionView } from '@/components/ui/animated';
+import { PressScale } from '@/components/ui/press-scale';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Stamp, Tape } from '@/components/ui/decor';
 import { MediaTile } from '@/components/ui/media-tile';
-import { PointsPill } from '@/components/ui/points-pill';
-import type { OwnerSubmission, OwnerVenue } from '@/features/owner/schemas';
-import { useHauntColors } from '@/theme/colors';
 import { hapticSuccess } from '@/components/ui/press';
-import { Camera, Check, Video } from 'lucide-react-native';
+import { Body, Hand, Mono, Pts } from '@/components/ui/typography';
+import type { OwnerSubmission, OwnerVenue } from '@/features/owner/schemas';
+import { useSurfaces } from '@/theme/surfaces';
 import { useEffect } from 'react';
-import { Text, View, useWindowDimensions } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { ActivityIndicator, Text, View, useWindowDimensions } from 'react-native';
+import { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
-function timeAgo(iso: string) {
+export function timeAgo(iso: string) {
   const minutes = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
-  if (minutes < 1) return 'Just now';
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes} min ago`;
   const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return `${hours} h ago`;
   const days = Math.round(hours / 24);
-  return `${days}d ago`;
+  return `${days} d ago`;
 }
+
+export function awardFor(item: OwnerSubmission, venue?: OwnerVenue) {
+  return item.pointsAwarded ?? (item.type === 'VIDEO' ? venue?.pointsPerVideo : venue?.pointsPerPhoto);
+}
+
+const SCREEN_GUTTER = 40;
 
 export function ReviewCard({
   item,
   venue,
   busy,
   leaving,
+  taped = false,
   onOpen,
   onApprove,
   onReject,
@@ -33,23 +43,23 @@ export function ReviewCard({
   venue?: OwnerVenue;
   busy: boolean;
   leaving: boolean;
+  taped?: boolean;
   onOpen: () => void;
   onApprove: () => void;
   onReject: () => void;
 }) {
-  const colors = useHauntColors();
+  const { colors, isJournal } = useSurfaces();
   const { width } = useWindowDimensions();
-  const mediaWidth = width - 48;
   const progress = useSharedValue(0);
   const style = useAnimatedStyle(() => ({
     opacity: 1 - progress.value,
     transform: [{ translateX: progress.value * 56 }, { scale: 1 - progress.value * 0.04 }],
   }));
   const guest = item.user.username || item.user.email;
-  const award =
-    item.pointsAwarded ??
-    (item.type === 'VIDEO' ? venue?.pointsPerVideo : venue?.pointsPerPhoto);
-  const TypeIcon = item.type === 'VIDEO' ? Video : Camera;
+  const award = awardFor(item, venue);
+  const pending = item.status === 'PENDING';
+  const border = isJournal ? 1.5 : 1;
+  const mediaWidth = width - SCREEN_GUTTER - border * 2;
 
   useEffect(() => {
     progress.value = leaving ? withTiming(1, { duration: 280 }) : 0;
@@ -61,44 +71,163 @@ export function ReviewCard({
   };
 
   return (
-    <Animated.View className="mx-6 mb-4 overflow-hidden rounded-3xl bg-haunt-card shadow-card" style={style}>
-      <MediaTile uri={item.mediaUrl} kind={item.type} width={mediaWidth} height={mediaWidth * 0.75} onPress={onOpen} />
-      <View className="p-4">
-        <View className="flex-row items-center">
-          <Avatar name={guest} size={40} />
-          <View className="ml-3 flex-1">
-            <Text className="font-sans-semibold text-body text-haunt-ink" numberOfLines={1}>
-              {guest}
-            </Text>
-            <Text className="mt-0.5 font-sans text-caption text-haunt-mute" numberOfLines={1}>
-              {item.venue.name} · {timeAgo(item.createdAt)}
-            </Text>
-          </View>
-          <TypeIcon color={colors.mute} size={18} />
-          {award != null ? (
-            <View className="ml-2">
-              <PointsPill value={`+${award}`} />
+    <MotionView style={style}>
+      <Card tone={pending ? 'card' : 'soft'}>
+        <View
+          style={{
+            borderBottomWidth: pending ? border : 1,
+            borderBottomColor: pending && isJournal ? colors.ink : colors.line,
+          }}>
+          <MediaTile
+            uri={item.mediaUrl}
+            kind={item.type}
+            width={mediaWidth}
+            height={pending ? 250 : 200}
+            radius={0}
+            bordered={false}
+            onPress={onOpen}
+          />
+          {!pending ? (
+            <View style={{ position: 'absolute', top: 14, right: 14 }} pointerEvents="none">
+              <Stamp
+                label={item.status === 'APPROVED' ? 'Approved' : 'Rejected'}
+                tone={item.status === 'APPROVED' ? 'ok' : 'no'}
+                rotate={4}
+                background={colors.card}
+              />
             </View>
           ) : null}
         </View>
-        {item.rejectionReason ? (
-          <Text className="mt-3 font-sans text-caption text-haunt-danger">{item.rejectionReason}</Text>
+        <View style={{ paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <Avatar name={guest} size={36} />
+          <View style={{ flex: 1, gap: 2 }}>
+            <Body size={16} weight="bold" numberOfLines={1}>
+              {guest}
+            </Body>
+            <Mono size={12} numberOfLines={1}>{`${item.venue.name} · ${timeAgo(item.createdAt)}`}</Mono>
+          </View>
+          {pending && award != null ? <Pts size={15}>{`+${award}`}</Pts> : null}
+          {item.status === 'APPROVED' && award != null ? (
+            <Mono size={14} color={colors.good}>{`+${award} given`}</Mono>
+          ) : null}
+        </View>
+        {item.status === 'REJECTED' && item.rejectionReason ? (
+          <Hand size={19} color={colors.danger} style={{ paddingHorizontal: 16, marginTop: -6, paddingBottom: 14 }}>
+            {`“${item.rejectionReason}”`}
+          </Hand>
         ) : null}
-        {item.status === 'PENDING' ? (
-          <View className="mt-4 flex-row gap-3">
-            <Button className="flex-1" size="md" variant="danger" label="Reject" onPress={onReject} disabled={busy || leaving} />
+        {pending ? (
+          <View style={{ flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingBottom: 16 }}>
             <Button
               className="flex-1"
-              size="md"
-              label="Approve"
-              leftIcon={<Check color={colors.onAccent} size={18} />}
-              onPress={approve}
-              loading={busy}
-              disabled={leaving}
+              size="sm"
+              variant="secondary"
+              label="Reject"
+              onPress={onReject}
+              disabled={busy || leaving}
             />
+            <Button className="flex-1" size="sm" label="Approve" onPress={approve} loading={busy} disabled={leaving} />
           </View>
         ) : null}
+      </Card>
+      {taped ? <Tape rotate={6} style={{ top: -10, right: 30 }} /> : null}
+    </MotionView>
+  );
+}
+
+/** Guest, place and review actions pinned under the full-screen viewer. */
+export function ReviewViewerFooter({
+  item,
+  venue,
+  busy,
+  onApprove,
+  onReject,
+}: {
+  item: OwnerSubmission;
+  venue?: OwnerVenue;
+  busy: boolean;
+  onApprove: () => void;
+  onReject: () => void;
+}) {
+  const { colors } = useSurfaces();
+  const guest = item.user.username || item.user.email;
+  const award = awardFor(item, venue);
+  const kind = item.type === 'VIDEO' ? 'Video' : 'Photo';
+
+  return (
+    <>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Avatar name={guest} size={40} accent />
+        <View style={{ flex: 1, gap: 2 }}>
+          <Body size={16} weight="bold" color={colors.viewerText} numberOfLines={1}>
+            {guest}
+          </Body>
+          <Mono size={12} color={colors.viewerMute} numberOfLines={1}>
+            {`${item.venue.name} · ${kind} · ${timeAgo(item.createdAt)}`}
+          </Mono>
+        </View>
+        {award != null ? (
+          <Mono size={15} color={colors.accent}>
+            {item.status === 'APPROVED' ? `+${award} given` : `+${award}`}
+          </Mono>
+        ) : null}
       </View>
-    </Animated.View>
+      {item.status === 'PENDING' ? (
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <ViewerAction label="Reject" onPress={onReject} disabled={busy} />
+          <ViewerAction
+            label="Approve"
+            primary
+            busy={busy}
+            onPress={() => {
+              hapticSuccess();
+              onApprove();
+            }}
+          />
+        </View>
+      ) : null}
+    </>
+  );
+}
+
+function ViewerAction({
+  label,
+  onPress,
+  primary = false,
+  busy = false,
+  disabled = false,
+}: {
+  label: string;
+  onPress: () => void;
+  primary?: boolean;
+  busy?: boolean;
+  disabled?: boolean;
+}) {
+  const { colors } = useSurfaces();
+  const textColor = primary ? colors.onAccent : colors.viewerText;
+  return (
+    <PressScale
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: disabled || busy, busy }}
+      disabled={disabled || busy}
+      onPress={onPress}
+      style={{
+        flex: 1,
+        height: 50,
+        borderRadius: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: primary ? colors.accent : 'transparent',
+        borderWidth: primary ? 0 : 1.5,
+        borderColor: colors.viewerBorder,
+        opacity: disabled ? 0.7 : 1,
+      }}>
+      {busy ? (
+        <ActivityIndicator color={textColor} />
+      ) : (
+        <Text style={{ fontFamily: 'BricolageGrotesque_700Bold', fontSize: 16, color: textColor }}>{label}</Text>
+      )}
+    </PressScale>
   );
 }

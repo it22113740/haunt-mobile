@@ -23,7 +23,7 @@
       "package": "com.haunt.mobile",
       "usesCleartextTraffic": true,
       "adaptiveIcon": {
-        "backgroundColor": "#F4EFE8",
+        "backgroundColor": "#F5F1E8",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -49,11 +49,11 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F4EFE8",
+          "backgroundColor": "#FFFFFF",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76,
           "dark": {
-            "backgroundColor": "#161210"
+            "backgroundColor": "#F5F1E8"
           }
         }
       ],
@@ -72,7 +72,7 @@
       [
         "expo-notifications",
         {
-          "color": "#C4512C",
+          "color": "#FC6401",
           "defaultChannel": "default",
           "enableBackgroundRemoteNotifications": true
         }

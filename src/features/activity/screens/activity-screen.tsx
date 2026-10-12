@@ -1,29 +1,31 @@
 import { EmptyState } from '@/components/empty-state';
 import { useListRefresh } from '@/components/list-refresh';
 import { ScreenState } from '@/components/screen-state';
-import { Chip } from '@/components/ui/chip';
+import { Segmented, StatStrip } from '@/components/ui/controls';
+import { Doodle } from '@/components/ui/decor';
+import { ListEnter, ScreenEnter } from '@/components/ui/enter';
 import { MediaTile } from '@/components/ui/media-tile';
 import { MediaViewer } from '@/components/ui/media-viewer';
-import { ListEnter, ScreenEnter } from '@/components/ui/enter';
 import { AppHeader } from '@/components/ui/screen-header';
 import { useTabBarInset } from '@/components/ui/tab-bar';
+import { Body, Hand, Label, Mono } from '@/components/ui/typography';
 import { StatusBadge } from '@/features/activity/components/status-badge';
 import { useMySubmissions } from '@/features/activity/hooks';
 import type { Submission } from '@/features/activity/schemas';
-import { useHauntColors } from '@/theme/colors';
+import { clockTime, shortDate } from '@/lib/dates';
+import { useSurfaces } from '@/theme/surfaces';
 import { useRouter } from 'expo-router';
-import { Camera, Video } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { ScrollView, SectionList, Text, View } from 'react-native';
+import { SectionList, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Filter = 'ALL' | Submission['status'];
 
-const filters: { id: Filter; label: string }[] = [
-  { id: 'ALL', label: 'All' },
-  { id: 'PENDING', label: 'Pending' },
-  { id: 'APPROVED', label: 'Approved' },
-  { id: 'REJECTED', label: 'Rejected' },
+const filters: { value: Filter; label: string }[] = [
+  { value: 'ALL', label: 'All' },
+  { value: 'PENDING', label: 'Waiting' },
+  { value: 'APPROVED', label: 'Approved' },
+  { value: 'REJECTED', label: 'Rejected' },
 ];
 
 function dayKey(iso: string) {
@@ -38,20 +40,21 @@ function dayLabel(iso: string) {
   const day = new Date(date);
   day.setHours(0, 0, 0, 0);
   const diff = Math.round((start.getTime() - day.getTime()) / 86_400_000);
-  if (diff === 0) return 'Today';
-  if (diff === 1) return 'Yesterday';
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  if (diff === 0) return `Today · ${shortDate(date)}`;
+  if (diff === 1) return `Yesterday · ${shortDate(date)}`;
+  return shortDate(date);
 }
 
 export function ActivityScreen() {
   const insets = useSafeAreaInsets();
   const tabInset = useTabBarInset();
   const router = useRouter();
+  const { isWhite } = useSurfaces();
   const [filter, setFilter] = useState<Filter>('ALL');
   const [viewer, setViewer] = useState<Submission | null>(null);
   const submissions = useMySubmissions();
   const refreshControl = useListRefresh([submissions]);
-  const rows = submissions.data ?? [];
+  const rows = useMemo(() => submissions.data ?? [], [submissions.data]);
 
   const sections = useMemo(() => {
     const visible = filter === 'ALL' ? rows : rows.filter((item) => item.status === filter);
@@ -82,41 +85,46 @@ export function ActivityScreen() {
   }
 
   return (
-    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top + 8 }}>
+    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top }}>
       <SectionList
         sections={sections}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingBottom: tabInset + 24, flexGrow: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 22, paddingBottom: tabInset, flexGrow: 1 }}
         refreshControl={refreshControl}
         stickySectionHeadersEnabled={false}
         ListHeaderComponent={
-          <View>
-            <AppHeader />
-            <View className="mx-6 flex-row rounded-3xl bg-haunt-card p-4 shadow-card" style={{ elevation: 4 }}>
-              <Summary label="Approved" value={String(approved)} />
-              <Summary label="Pending" value={String(pending)} />
-              <Summary label="Points" value={String(earned)} />
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-4" contentContainerStyle={{ paddingHorizontal: 24, gap: 8 }}>
-              {filters.map((item) => (
-                <Chip key={item.id} label={item.label} selected={filter === item.id} onPress={() => setFilter(item.id)} />
-              ))}
-            </ScrollView>
+          <View style={{ gap: 18, marginBottom: 14 }}>
+            {isWhite ? (
+              <>
+                <Doodle kind="sparkle" size={16} accent style={{ left: 136, top: 4 }} />
+                <Doodle kind="sparkle" size={9} style={{ left: 156, top: 22 }} />
+              </>
+            ) : null}
+            <AppHeader title="Your log" markTitle />
+            <StatStrip
+              items={[
+                { key: 'approved', value: approved, label: 'Approved' },
+                { key: 'waiting', value: pending, label: 'Waiting' },
+                { key: 'earned', value: earned, label: 'Pts earned', accent: true },
+              ]}
+            />
+            <Segmented options={filters} value={filter} onChange={setFilter} />
           </View>
         }
-        renderSectionHeader={({ section }) => (
-          <Text className="mb-2 mt-6 px-6 font-sans-semibold text-caption text-haunt-mute">{section.title}</Text>
-        )}
+        renderSectionHeader={({ section }) => <Label style={{ paddingTop: 4, paddingBottom: 6 }}>{section.title}</Label>}
+        renderSectionFooter={() => <View style={{ height: 14 }} />}
         renderItem={({ item, index }) => (
-          <ListEnter index={index} className="px-6">
+          <ListEnter index={index}>
             <SubmissionRow item={item} onOpen={() => setViewer(item)} />
           </ListEnter>
         )}
         ListEmptyComponent={
           <EmptyState
             illustration="empty-visits"
-            title={rows.length === 0 ? 'No visits yet' : 'Nothing here'}
-            detail={rows.length === 0 ? 'Capture a photo or video at a venue to start earning.' : 'No visits match this filter.'}
+            title={rows.length === 0 ? 'No visits yet' : 'Nothing here yet'}
+            detail={
+              rows.length === 0 ? 'Capture a photo or video at a venue to start earning.' : 'No visits match this filter.'
+            }
             action={rows.length === 0 ? 'Capture a visit' : undefined}
             onPress={rows.length === 0 ? () => router.push('/(user)/(tabs)/capture') : undefined}
           />
@@ -127,37 +135,36 @@ export function ActivityScreen() {
   );
 }
 
-function Summary({ label, value }: { label: string; value: string }) {
-  return (
-    <View className="flex-1">
-      <Text className="font-display text-title text-haunt-ink">{value}</Text>
-      <Text className="mt-1 font-sans text-caption text-haunt-mute">{label}</Text>
-    </View>
-  );
-}
-
 function SubmissionRow({ item, onOpen }: { item: Submission; onOpen: () => void }) {
-  const colors = useHauntColors();
-  const Icon = item.type === 'PHOTO' ? Camera : Video;
-  const time = new Date(item.createdAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  const { colors } = useSurfaces();
+  const kind = item.type === 'PHOTO' ? 'Photo' : 'Video';
 
   return (
-    <View className="mb-3 flex-row rounded-3xl bg-haunt-card p-3 shadow-card" style={{ elevation: 4 }}>
-      <MediaTile uri={item.mediaUrl} kind={item.type} onPress={onOpen} />
-      <View className="ml-3 flex-1">
-        <View className="flex-row items-start justify-between">
-          <Text className="flex-1 font-sans-semibold text-body text-haunt-ink">{item.venue.name}</Text>
-          <StatusBadge status={item.status} />
-        </View>
-        <View className="mt-1 flex-row items-center">
-          <Icon color={colors.mute} size={14} />
-          <Text className="ml-1 font-sans text-caption text-haunt-mute">{time}</Text>
-        </View>
-        {item.status === 'APPROVED' && item.pointsAwarded != null ? (
-          <Text className="mt-2 font-display text-body text-haunt-good">+{item.pointsAwarded}</Text>
-        ) : null}
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.line,
+      }}>
+      <MediaTile uri={item.mediaUrl} kind={item.type} size={52} onPress={onOpen} />
+      <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+        <Body size={16} weight="bold" numberOfLines={1}>
+          {item.venue.name}
+        </Body>
+        <Mono size={12}>{`${kind} · ${clockTime(item.createdAt)}`}</Mono>
         {item.status === 'REJECTED' && item.rejectionReason ? (
-          <Text className="mt-2 font-sans text-caption text-haunt-danger">{item.rejectionReason}</Text>
+          <Hand size={18} color={colors.danger} style={{ lineHeight: 20 }}>
+            {`“${item.rejectionReason}”`}
+          </Hand>
+        ) : null}
+      </View>
+      <View style={{ alignItems: 'flex-end', gap: 6 }}>
+        <StatusBadge status={item.status} />
+        {item.status === 'APPROVED' && item.pointsAwarded != null ? (
+          <Mono size={14} medium color={colors.good}>{`+${item.pointsAwarded}`}</Mono>
         ) : null}
       </View>
     </View>

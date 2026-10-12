@@ -1,15 +1,15 @@
-import { Badge } from '@/components/ui/badge';
+import { Stamp } from '@/components/ui/decor';
 
 type ReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 const labels: Record<ReviewStatus, string> = {
-  PENDING: 'Pending',
+  PENDING: 'Waiting',
   APPROVED: 'Approved',
   REJECTED: 'Rejected',
 };
 
-const tones = { PENDING: 'warn', APPROVED: 'good', REJECTED: 'danger' } as const;
+const tones = { PENDING: 'wait', APPROVED: 'ok', REJECTED: 'no' } as const;
 
-export function StatusBadge({ status }: { status: ReviewStatus }) {
-  return <Badge label={labels[status]} tone={tones[status]} />;
+export function StatusBadge({ status, rotate = 0 }: { status: ReviewStatus; rotate?: number }) {
+  return <Stamp label={labels[status]} tone={tones[status]} rotate={rotate} />;
 }

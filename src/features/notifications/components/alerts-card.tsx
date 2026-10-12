@@ -1,10 +1,14 @@
-import { getApiErrorMessage } from '@/lib/api-error';
-import { PrimaryButton } from '@/features/auth/components/primary-button';
+import { Toggle } from '@/components/ui/controls';
+import { Body, H2, Sub } from '@/components/ui/typography';
+import { isGeofenceActive } from '@/features/location/tracking';
 import { useEnablePush, useTestPush } from '@/features/notifications/hooks';
 import type { Profile } from '@/features/profile/schemas';
+import { getApiErrorMessage } from '@/lib/api-error';
+import { useSurfaces } from '@/theme/surfaces';
 import { isAxiosError } from 'axios';
-import { useRouter } from 'expo-router';
-import { Text, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, AppState, Linking, Platform, Pressable, View } from 'react-native';
 
 type AlertsCardProps = {
   role: Profile['role'];
@@ -17,17 +21,40 @@ function noticeFrom(error: unknown, fallback: string): string {
   return fallback;
 }
 
+function openSystemSettings() {
+  if (Platform.OS === 'web') return;
+  void Linking.openSettings().catch(() => undefined);
+}
+
+function useArrivalTracking(enabled: boolean) {
+  const [active, setActive] = useState(false);
+
+  const refresh = useCallback(() => {
+    if (!enabled) return;
+    void isGeofenceActive().then(setActive);
+  }, [enabled]);
+
+  useFocusEffect(refresh);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') refresh();
+    });
+    return () => subscription.remove();
+  }, [refresh]);
+
+  return active;
+}
+
 export function AlertsCard({ role, pushToken }: AlertsCardProps) {
   const router = useRouter();
+  const { colors } = useSurfaces();
   const enablePush = useEnablePush();
   const testPush = useTestPush();
-  const registered = Boolean(pushToken);
+  const pushOn = Boolean(pushToken) || enablePush.isSuccess;
+  const arrivalOn = useArrivalTracking(role === 'USER');
 
-  const pushNotice = enablePush.isError
-    ? noticeFrom(enablePush.error, 'Couldn’t turn on notifications.')
-    : enablePush.isSuccess
-      ? 'This phone is registered for Haunt notifications.'
-      : null;
+  const pushNotice = enablePush.isError ? noticeFrom(enablePush.error, 'Couldn’t turn on notifications.') : null;
 
   const testNotice = testPush.isError
     ? noticeFrom(testPush.error, 'Couldn’t send the test push.')
@@ -38,53 +65,95 @@ export function AlertsCard({ role, pushToken }: AlertsCardProps) {
       : null;
 
   return (
-    <View className="mt-8">
-      <Text className="text-sm font-semibold uppercase tracking-wide text-haunt-mute">Notifications</Text>
-      <Text className="mt-3 text-2xl font-semibold text-haunt-ink">Hear when something happens</Text>
-      <Text className="mt-3 text-base leading-6 text-haunt-mute">
-        Haunt asks to send notifications, then saves this phone’s Expo push token on your profile. That’s how a
-        test and an arrival note reach you.
-      </Text>
-      <Text className="mt-4 text-base font-semibold text-haunt-ink">
-        {registered ? 'Token saved' : 'No token yet'}
-      </Text>
-      <View className="mt-4 gap-3">
-        <PrimaryButton
-          label="Allow notifications"
-          loading={enablePush.isPending}
-          onPress={() => {
-            enablePush.mutate();
-          }}
-        />
-        <PrimaryButton
-          label="Send test push"
-          loading={testPush.isPending}
-          onPress={() => {
-            testPush.mutate();
-          }}
-        />
-      </View>
-      {pushNotice ? <Text className="mt-3 text-sm leading-5 text-haunt-mute">{pushNotice}</Text> : null}
-      {testNotice ? <Text className="mt-2 text-sm leading-5 text-haunt-ink">{testNotice}</Text> : null}
-
+    <View style={{ gap: 4 }}>
+      <H2 style={{ marginBottom: 8 }}>Nudges</H2>
+      <NudgeRow
+        title="Visit updates"
+        body={
+          role === 'OWNER'
+            ? 'Hear when guests send shots for review or claim a perk.'
+            : 'Hear when a place approves your shots or your points land.'
+        }
+        value={pushOn}
+        busy={enablePush.isPending}
+        onChange={(next) => {
+          if (next) enablePush.mutate();
+          else openSystemSettings();
+        }}
+      />
       {role === 'USER' ? (
-        <View className="mt-8">
-          <Text className="text-sm font-semibold uppercase tracking-wide text-haunt-mute">Arrival alerts</Text>
-          <Text className="mt-3 text-2xl font-semibold text-haunt-ink">Notice when you walk in</Text>
-          <Text className="mt-3 text-base leading-6 text-haunt-mute">
-            Haunt asks for location while the app is open, then for background location. Each update sends your
-            current spot so Haunt can tell you if you’re at a place.
-          </Text>
-          <View className="mt-4">
-            <PrimaryButton
-              label="Set up location"
-              onPress={() => {
-                router.push('/(user)/location');
-              }}
-            />
-          </View>
-        </View>
+        <NudgeRow
+          title="Arrival alerts"
+          body="Haunt notices when you walk into a place and reminds you to capture it. Uses your location in the background."
+          value={arrivalOn}
+          onChange={(next) => {
+            if (next) router.push('/(user)/location');
+            else openSystemSettings();
+          }}
+        />
       ) : null}
+      {pushNotice ? (
+        <Sub size={14} color={colors.danger} style={{ paddingTop: 10 }}>
+          {pushNotice}
+        </Sub>
+      ) : null}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ busy: testPush.isPending, disabled: testPush.isPending }}
+        disabled={testPush.isPending}
+        onPress={() => {
+          testPush.mutate();
+        }}
+        style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 12 }}>
+        <Body size={14} weight="semibold" color={colors.accentDeep} style={{ textDecorationLine: 'underline' }}>
+          Send me a test nudge
+        </Body>
+        {testPush.isPending ? <ActivityIndicator size="small" color={colors.accentDeep} /> : null}
+      </Pressable>
+      {testNotice ? <Sub size={14}>{testNotice}</Sub> : null}
+    </View>
+  );
+}
+
+function NudgeRow({
+  title,
+  body,
+  value,
+  busy = false,
+  onChange,
+}: {
+  title: string;
+  body: string;
+  value: boolean;
+  busy?: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  const { colors } = useSurfaces();
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 16,
+        paddingVertical: 14,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.line,
+      }}>
+      <View style={{ flex: 1, gap: 3 }}>
+        <Body size={16} weight="bold">
+          {title}
+        </Body>
+        <Sub size={14} style={{ lineHeight: 20 }}>
+          {body}
+        </Sub>
+      </View>
+      {busy ? (
+        <View style={{ width: 52, alignItems: 'center' }}>
+          <ActivityIndicator color={colors.accent} />
+        </View>
+      ) : (
+        <Toggle value={value} onValueChange={onChange} accessibilityLabel={title} />
+      )}
     </View>
   );
 }

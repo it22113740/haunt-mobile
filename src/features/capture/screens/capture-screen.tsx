@@ -1,23 +1,29 @@
-import { EmptyState } from '@/components/empty-state';
 import { ScreenState } from '@/components/screen-state';
 import { Button } from '@/components/ui/button';
-import { MediaTile } from '@/components/ui/media-tile';
+import { Doodle } from '@/components/ui/decor';
 import { ScreenEnter } from '@/components/ui/enter';
+import { LibraryIcon, VideoIcon } from '@/components/ui/hunt-icons';
 import { hapticSuccess, hapticWarning } from '@/components/ui/press';
-import { AppHeader } from '@/components/ui/screen-header';
 import { useTabBarInset } from '@/components/ui/tab-bar';
+import { Body, Label, Sub, Wordmark } from '@/components/ui/typography';
 import type { VisitFile } from '@/features/capture/api';
 import { CaptureSuccess } from '@/features/capture/components/capture-success';
-import { ProgressCard, ShotTile, VenueStrip } from '@/features/capture/components/capture-steps';
+import {
+  PickedShots,
+  ProgressCard,
+  ShotTile,
+  StepTitle,
+  VenueStrip,
+  ViewfinderButton,
+} from '@/features/capture/components/capture-steps';
 import { useSubmitVisit } from '@/features/capture/hooks';
-import { useExploreVenues } from '@/features/venues/hooks';
+import { useExploreVenues, useUserLocation } from '@/features/venues/hooks';
 import { getApiErrorMessage } from '@/lib/api-error';
 import { useHauntColors } from '@/theme/colors';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Camera, Images, Plus, Video, X } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function CaptureScreen() {
@@ -26,23 +32,28 @@ export function CaptureScreen() {
   const router = useRouter();
   const colors = useHauntColors();
   const explore = useExploreVenues(true);
+  const location = useUserLocation();
   const submit = useSubmitVisit();
-  const [venueId, setVenueId] = useState<string | null>(null);
+  const params = useLocalSearchParams<{ venueId?: string | string[] }>();
+  const paramVenueId = (Array.isArray(params.venueId) ? params.venueId[0] : params.venueId) ?? null;
+  const [venueId, setVenueId] = useState<string | null>(paramVenueId);
+  const [lastParamVenueId, setLastParamVenueId] = useState(paramVenueId);
   const [files, setFiles] = useState<VisitFile[]>([]);
   const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState<{ points: number } | null>(null);
-  const params = useLocalSearchParams<{ venueId?: string | string[] }>();
 
-  useEffect(() => {
-    const raw = Array.isArray(params.venueId) ? params.venueId[0] : params.venueId;
-    if (raw) setVenueId(raw);
-  }, [params.venueId]);
+  if (paramVenueId !== lastParamVenueId) {
+    setLastParamVenueId(paramVenueId);
+    if (paramVenueId) setVenueId(paramVenueId);
+  }
 
   const venue = explore.venues.find((item) => item.id === venueId) ?? null;
   const estimate = venue
     ? files.reduce((sum, file) => sum + (file.type === 'VIDEO' ? venue.pointsPerVideo : venue.pointsPerPhoto), 0)
     : 0;
+  const photoPoints = venue?.pointsPerPhoto ?? explore.venues[0]?.pointsPerPhoto ?? 10;
+  const videoPoints = venue?.pointsPerVideo ?? explore.venues[0]?.pointsPerVideo ?? 20;
 
   const addAssets = (assets: ImagePicker.ImagePickerAsset[]) => {
     setSent(null);
@@ -124,65 +135,93 @@ export function CaptureScreen() {
     );
   }
 
+  const ready = Boolean(venueId) && files.length > 0;
+  const hint = !venueId
+    ? 'Pick the place you’re at first.'
+    : files.length === 0
+      ? 'Add at least one shot first.'
+      : `You’ll earn up to +${estimate} pts once approved.`;
+
+  const footerBottom = tabInset - 2;
+  const quiet = files.length === 0 && progress === null && !error;
+
   return (
-    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top + 8 }}>
-      <AppHeader />
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ paddingBottom: 24 }}
-        keyboardShouldPersistTaps="handled">
-        <Text className="px-6 font-sans-semibold text-caption text-haunt-accent">1</Text>
-        <Text className="mt-1 px-6 font-display text-title text-haunt-ink">Where are you?</Text>
-        {explore.venues.length === 0 ? (
-          <EmptyState illustration="empty-places" title="No venues yet" detail="No venues to visit yet." />
-        ) : (
-          <VenueStrip venues={explore.venues} selectedId={venueId} onSelect={setVenueId} />
-        )}
-        <Text className="mt-8 px-6 font-sans-semibold text-caption text-haunt-accent">2</Text>
-        <Text className="mt-1 px-6 font-display text-title text-haunt-ink">Add your shots</Text>
-        <View className="mt-4 flex-row gap-3 px-6">
-          <ShotTile icon={<Camera color={colors.accent} size={22} />} label="Camera" onPress={() => void capture('images')} />
-          <ShotTile icon={<Video color={colors.accent} size={22} />} label="Video" onPress={() => void capture('videos')} />
-          <ShotTile icon={<Images color={colors.accent} size={22} />} label="Images" onPress={() => void pickLibrary()} />
+    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top }}>
+      {quiet ? (
+        <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, bottom: footerBottom }}>
+          <Doodle kind="trail" size={180} style={{ left: 28, bottom: 48 }} />
+          <Doodle kind="camera" size={40} rotate={10} style={{ right: 34, bottom: 102 }} />
         </View>
-        {files.length > 0 ? (
-          <View className="mt-4 px-6">
-            <Text className="font-sans text-caption text-haunt-mute">
-              {files.length} {files.length === 1 ? 'item' : 'items'} · up to +{estimate} pts
-            </Text>
-            <View className="mt-3 flex-row flex-wrap gap-3">
-              {files.map((file) => (
-                <View key={file.uri}>
-                  <MediaTile uri={file.uri} kind={file.type} size={100} />
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Remove"
-                    onPress={() => setFiles((current) => current.filter((item) => item.uri !== file.uri))}
-                    className="absolute -right-1 -top-1 h-7 w-7 items-center justify-center rounded-full bg-haunt-ink">
-                    <X color={colors.card} size={14} />
-                  </Pressable>
-                </View>
-              ))}
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Add more"
-                onPress={() => void pickLibrary()}
-                className="h-[100px] w-[100px] items-center justify-center rounded-2xl border border-dashed border-haunt-line">
-                <Plus color={colors.ink} size={22} />
-              </Pressable>
-            </View>
+      ) : null}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 22, paddingBottom: 24, gap: 22 }}
+        keyboardShouldPersistTaps="handled">
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Wordmark />
+          <Label>New entry</Label>
+        </View>
+
+        <View style={{ gap: 12 }}>
+          <StepTitle step="01" title="Where are you?" />
+          {explore.venues.length === 0 ? (
+            <Sub>No places on Haunt yet. Check back once a venue joins.</Sub>
+          ) : (
+            <VenueStrip
+              venues={explore.venues}
+              selectedId={venueId}
+              origin={location.data}
+              onSelect={setVenueId}
+            />
+          )}
+        </View>
+
+        <View style={{ gap: 12 }}>
+          <Doodle kind="arrow" size={66} style={{ right: -4, top: -21 }} />
+          <Doodle kind="sparkle" size={14} accent style={{ right: 76, top: 17 }} />
+          <StepTitle step="02" title="Grab your shots" />
+          <ViewfinderButton points={photoPoints} onPress={() => void capture('images')} />
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <ShotTile
+              icon={<VideoIcon color={colors.ink} size={20} />}
+              label="Video"
+              points={videoPoints}
+              onPress={() => void capture('videos')}
+            />
+            <ShotTile
+              icon={<LibraryIcon color={colors.ink} size={20} />}
+              label="From library"
+              onPress={() => void pickLibrary()}
+            />
           </View>
+        </View>
+
+        {files.length > 0 ? (
+          <PickedShots
+            files={files}
+            estimate={estimate}
+            onAdd={() => void pickLibrary()}
+            onRemove={(uri) => setFiles((current) => current.filter((item) => item.uri !== uri))}
+          />
         ) : null}
         {progress !== null ? <ProgressCard ratio={progress} /> : null}
-        {error ? <Text className="mt-3 px-6 font-sans text-caption text-haunt-danger">{error}</Text> : null}
+        {error ? (
+          <Body size={14} color={colors.danger} accessibilityLiveRegion="polite">
+            {error}
+          </Body>
+        ) : null}
       </ScrollView>
-      <View className="px-6 pt-3" style={{ paddingBottom: tabInset }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: footerBottom, gap: 8, alignItems: 'center' }}>
         <Button
-          label="Submit visit"
+          label="Send for review"
+          className="self-stretch"
           onPress={() => void onSubmit()}
           loading={submit.isPending}
-          disabled={!venueId || files.length === 0}
+          disabled={!ready}
         />
+        <Body size={13} color={colors.mute} style={{ textAlign: 'center' }}>
+          {hint}
+        </Body>
       </View>
     </ScreenEnter>
   );

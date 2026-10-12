@@ -1,18 +1,21 @@
-import { PrimaryButton } from '@/features/auth/components/primary-button';
+import { Button } from '@/components/ui/button';
+import { Body } from '@/components/ui/typography';
 import { TextField } from '@/features/auth/components/text-field';
 import { useUpdateProfile } from '@/features/profile/hooks';
 import { profileFormSchema, type Profile, type ProfileFormValues } from '@/features/profile/schemas';
 import { getApiErrorMessage } from '@/lib/api-error';
+import { useSurfaces } from '@/theme/surfaces';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 type ProfileFormProps = {
   profile: Profile;
 };
 
 export function ProfileForm({ profile }: ProfileFormProps) {
+  const { colors } = useSurfaces();
   const update = useUpdateProfile(profile.role);
   const [formError, setFormError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -38,7 +41,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
   });
 
   return (
-    <View className="mt-8 gap-4">
+    <View style={{ gap: 18 }}>
       {profile.role === 'USER' ? (
         <Controller
           control={form.control}
@@ -60,7 +63,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
         name="email"
         render={({ field, fieldState }) => (
           <TextField
-            label="Account email"
+            label="Email"
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}
@@ -103,9 +106,17 @@ export function ProfileForm({ profile }: ProfileFormProps) {
           />
         </>
       ) : null}
-      {formError ? <Text className="text-sm text-haunt-danger">{formError}</Text> : null}
-      {saved ? <Text className="text-sm font-semibold text-haunt-ink">Profile saved.</Text> : null}
-      <PrimaryButton label="Save profile" onPress={onSubmit} loading={update.isPending} />
+      {formError ? (
+        <Body size={14} color={colors.danger}>
+          {formError}
+        </Body>
+      ) : null}
+      {saved ? (
+        <Body size={14} weight="semibold" color={colors.good}>
+          Saved.
+        </Body>
+      ) : null}
+      <Button label="Save changes" size="sm" className="self-start" onPress={onSubmit} loading={update.isPending} />
     </View>
   );
 }

@@ -1,15 +1,17 @@
 import { Illustration, type IllustrationName } from '@/components/illustration';
 import { Button } from '@/components/ui/button';
+import { Ticks } from '@/components/ui/decor';
 import { ScreenEnter } from '@/components/ui/enter';
 import { hapticWarning } from '@/components/ui/press';
+import { Body, H1, Label } from '@/components/ui/typography';
 import { enablePushNotifications } from '@/features/notifications/push';
 import { useLaunchFlags } from '@/lib/launch-flags';
-import { useHauntColors } from '@/theme/colors';
-import { useRouter } from 'expo-router';
+import { useSurfaces } from '@/theme/surfaces';
 import * as Location from 'expo-location';
+import { useRouter } from 'expo-router';
 import { Check } from 'lucide-react-native';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const steps: { illustration: IllustrationName; title: string; points: string[] }[] = [
@@ -25,18 +27,14 @@ const steps: { illustration: IllustrationName; title: string; points: string[] }
   {
     illustration: 'perm-notify',
     title: 'Hear when it counts',
-    points: [
-      'Know when a visit is approved',
-      'Get a note as you arrive',
-      'See when a perk is ready to use',
-    ],
+    points: ['Know when a visit is approved', 'Get a note as you arrive', 'See when a perk is ready to use'],
   },
 ];
 
 export function PermissionsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const colors = useHauntColors();
+  const { colors } = useSurfaces();
   const completePermissions = useLaunchFlags((state) => state.completePermissions);
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -78,26 +76,48 @@ export function PermissionsScreen() {
 
   return (
     <ScreenEnter
-      className="flex-1 justify-between bg-haunt-paper px-6"
-      style={{ paddingTop: insets.top + 24, paddingBottom: Math.max(insets.bottom, 16) }}>
+      className="flex-1 bg-haunt-paper"
+      style={{
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingTop: insets.top + 24,
+        paddingBottom: Math.max(insets.bottom, 14) + 10,
+      }}>
       <View>
-        <Text className="font-sans-semibold text-caption text-haunt-mute">{step + 1} of 2</Text>
-        <View className="mt-6 items-center">
-          <View className="absolute h-56 w-56 rounded-full bg-haunt-blush" />
-          <Illustration name={current.illustration} size={200} />
+        <View style={{ gap: 8 }}>
+          <Label color={colors.accentDeep}>{`Step ${step + 1} of 2`}</Label>
+          <Ticks progress={(step + 1) / 2} />
         </View>
-        <Text className="mt-8 font-display text-display-lg text-haunt-ink">{current.title}</Text>
-        <View className="mt-6 gap-4">
+        <View style={{ alignItems: 'center', marginTop: 18 }}>
+          <Illustration name={current.illustration} size={220} />
+        </View>
+        <H1 style={{ marginTop: 14 }}>{current.title}</H1>
+        <View style={{ marginTop: 18 }}>
           {current.points.map((point) => (
-            <View key={point} className="flex-row items-center">
-              <Check color={colors.good} size={18} />
-              <Text className="ml-3 flex-1 font-sans text-body text-haunt-ink">{point}</Text>
+            <View
+              key={point}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 12,
+                paddingVertical: 12,
+                borderBottomWidth: 1,
+                borderBottomColor: colors.line,
+              }}>
+              <Check color={colors.good} size={18} strokeWidth={2.4} />
+              <Body size={16} style={{ flex: 1 }}>
+                {point}
+              </Body>
             </View>
           ))}
         </View>
-        {message ? <Text className="mt-4 font-sans text-caption text-haunt-danger">{message}</Text> : null}
+        {message ? (
+          <Body size={14} color={colors.danger} style={{ marginTop: 14 }} accessibilityLiveRegion="polite">
+            {message}
+          </Body>
+        ) : null}
       </View>
-      <View className="gap-2">
+      <View style={{ gap: 8 }}>
         <Button label="Allow" onPress={() => void allow()} loading={busy} />
         <Button label="Maybe later" variant="ghost" onPress={later} disabled={busy} />
       </View>

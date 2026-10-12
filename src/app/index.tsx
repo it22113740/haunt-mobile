@@ -1,8 +1,7 @@
-import { Button } from '@/components/ui/button';
+import { ScreenState } from '@/components/screen-state';
 import { useLaunchFlags } from '@/lib/launch-flags';
 import { useAuthStore } from '@/stores/auth';
 import { Redirect } from 'expo-router';
-import { Text, View } from 'react-native';
 
 export default function Index() {
   const token = useAuthStore((state) => state.token);
@@ -18,15 +17,14 @@ export default function Index() {
 
   if (token && !role && error) {
     return (
-      <View className="flex-1 items-center justify-center bg-haunt-paper px-6">
-        <Text className="mb-4 text-center text-base text-haunt-ink">{error}</Text>
-        <Button
-          label="Try again"
-          onPress={() => {
-            void hydrate();
-          }}
-        />
-      </View>
+      <ScreenState
+        title="Couldn’t load your account"
+        detail={error}
+        action="Try again"
+        onPress={() => {
+          void hydrate();
+        }}
+      />
     );
   }
 

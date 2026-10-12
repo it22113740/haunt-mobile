@@ -1,5 +1,5 @@
 import { hapticWarning } from '@/components/ui/press';
-import { useHauntColors } from '@/theme/colors';
+import { useSurfaces } from '@/theme/surfaces';
 import { Check, Info, TriangleAlert } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { Text } from 'react-native';
@@ -26,7 +26,7 @@ export function showToast(message: string, tone: ToastTone = 'info') {
 
 export function ToastHost() {
   const insets = useSafeAreaInsets();
-  const colors = useHauntColors();
+  const { colors, surfaces } = useSurfaces();
   const [toast, setToast] = useState<ToastItem | null>(null);
 
   useEffect(() => {
@@ -46,7 +46,7 @@ export function ToastHost() {
   if (!toast) return null;
 
   const Icon = toast.tone === 'success' ? Check : toast.tone === 'warning' ? TriangleAlert : Info;
-  const iconColor = toast.tone === 'success' ? colors.good : toast.tone === 'warning' ? colors.danger : colors.ink;
+  const iconColor = toast.tone === 'success' ? colors.good : toast.tone === 'warning' ? colors.danger : colors.accentDeep;
 
   return (
     <Animated.View
@@ -54,10 +54,26 @@ export function ToastHost() {
       entering={SlideInDown.duration(280)}
       exiting={SlideOutUp.duration(220)}
       pointerEvents="none"
-      className="absolute left-6 right-6 flex-row items-center rounded-3xl bg-haunt-card px-4 py-3 shadow-card"
-      style={{ top: insets.top + 12, elevation: 6 }}>
-      <Icon color={iconColor} size={20} />
-      <Text className="ml-3 flex-1 font-sans text-body text-haunt-ink">{toast.message}</Text>
+      accessibilityLiveRegion="polite"
+      accessibilityRole="alert"
+      style={[
+        surfaces.raised,
+        {
+          position: 'absolute',
+          left: 20,
+          right: 20,
+          top: insets.top + 12,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 12,
+          paddingHorizontal: 16,
+          paddingVertical: 14,
+        },
+      ]}>
+      <Icon color={iconColor} size={20} strokeWidth={1.9} />
+      <Text style={{ flex: 1, fontFamily: 'BricolageGrotesque_600SemiBold', fontSize: 15, color: colors.ink }}>
+        {toast.message}
+      </Text>
     </Animated.View>
   );
 }

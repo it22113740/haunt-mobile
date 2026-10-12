@@ -1,8 +1,10 @@
 import { CachedImage } from '@/components/cached-image';
-import { EmptyState } from '@/components/empty-state';
 import { SkeletonBlock } from '@/components/skeleton';
+import { Card } from '@/components/ui/card';
+import { Body, Sub } from '@/components/ui/typography';
 import type { Promotion } from '@/features/venues/schemas';
-import { Pressable, Text, View } from 'react-native';
+import { useSurfaces } from '@/theme/surfaces';
+import { Pressable, View } from 'react-native';
 
 export function PromotionList({
   promotions,
@@ -15,32 +17,37 @@ export function PromotionList({
   error: boolean;
   onRetry: () => void;
 }) {
-  if (pending) return <SkeletonBlock height={96} radius={24} />;
+  const { colors, isJournal } = useSurfaces();
+  if (pending) return <SkeletonBlock height={72} radius={10} />;
   if (error) {
     return (
-      <Pressable onPress={onRetry}>
-        <Text className="font-sans-semibold text-body text-haunt-accent">Couldn’t load promotions. Try again.</Text>
+      <Pressable accessibilityRole="button" onPress={onRetry}>
+        <Body size={15} weight="semibold" color={colors.accentDeep}>
+          Couldn’t load offers. Tap to try again.
+        </Body>
       </Pressable>
     );
   }
   if (!promotions?.length) {
-    return <EmptyState illustration="empty-perks" title="No promotions" detail="This place has nothing extra on right now." />;
+    return <Sub>Nothing extra on right now. Check back on the weekend.</Sub>;
   }
 
   return (
-    <View className="gap-3">
+    <View style={{ gap: 12 }}>
       {promotions.map((promotion) => (
-        <View key={promotion.id} className="overflow-hidden rounded-3xl bg-haunt-card shadow-card" style={{ elevation: 4 }}>
+        <Card key={promotion.id} tone="soft">
           {promotion.imageUrl ? (
-            <CachedImage source={{ uri: promotion.imageUrl }} style={{ height: 140, width: '100%' }} contentFit="cover" />
+            <View style={{ borderBottomWidth: isJournal ? 1 : 0, borderBottomColor: colors.line }}>
+              <CachedImage source={{ uri: promotion.imageUrl }} style={{ height: 140, width: '100%' }} contentFit="cover" />
+            </View>
           ) : null}
-          <View className="px-5 py-4">
-            <Text className="font-display text-body text-haunt-ink">{promotion.title}</Text>
-            {promotion.description ? (
-              <Text className="mt-2 font-sans text-caption text-haunt-mute">{promotion.description}</Text>
-            ) : null}
+          <View style={{ paddingHorizontal: 16, paddingVertical: 14, gap: 4 }}>
+            <Body size={17} weight="bold">
+              {promotion.title}
+            </Body>
+            {promotion.description ? <Sub size={14}>{promotion.description}</Sub> : null}
           </View>
-        </View>
+        </Card>
       ))}
     </View>
   );

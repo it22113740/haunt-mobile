@@ -11,63 +11,69 @@ import { useLaunchFlags } from '@/lib/launch-flags';
 import { useAuthStore } from '@/stores/auth';
 import { hauntCssVariables, useHauntColors, useHauntVars } from '@/theme/colors';
 import {
+  BricolageGrotesque_400Regular,
+  BricolageGrotesque_500Medium,
+  BricolageGrotesque_600SemiBold,
   BricolageGrotesque_700Bold,
   BricolageGrotesque_800ExtraBold,
 } from '@expo-google-fonts/bricolage-grotesque';
-import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from '@expo-google-fonts/inter';
-import { JetBrainsMono_500Medium, JetBrainsMono_700Bold } from '@expo-google-fonts/jetbrains-mono';
+import { Caveat_500Medium, Caveat_600SemiBold } from '@expo-google-fonts/caveat';
+import {
+  IBMPlexMono_400Regular,
+  IBMPlexMono_500Medium,
+  IBMPlexMono_600SemiBold,
+} from '@expo-google-fonts/ibm-plex-mono';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { NavigationBar } from 'expo-navigation-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { Platform, useColorScheme, View } from 'react-native';
+import { StatusBar as NativeStatusBar, Platform, View } from 'react-native';
 
 SplashScreen.preventAutoHideAsync();
 
+// Every mounted StatusBar re-applies these defaults on Android; without them some devices (and Expo Go)
+// fall back to an opaque black bar that hides the dark icons. Screens pad themselves with the top inset.
+if (Platform.OS === 'android') {
+  NativeStatusBar.setTranslucent(true);
+  NativeStatusBar.setBackgroundColor('transparent');
+}
+
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const colors = useHauntColors();
   const themeVars = useHauntVars();
   const hydrate = useAuthStore((state) => state.hydrate);
   const loadFlags = useLaunchFlags((state) => state.load);
   const [sessionReady, setSessionReady] = useState(false);
   const [fontsLoaded, fontError] = useFonts({
+    BricolageGrotesque_400Regular,
+    BricolageGrotesque_500Medium,
+    BricolageGrotesque_600SemiBold,
     BricolageGrotesque_700Bold,
     BricolageGrotesque_800ExtraBold,
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    JetBrainsMono_500Medium,
-    JetBrainsMono_700Bold,
+    IBMPlexMono_400Regular,
+    IBMPlexMono_500Medium,
+    IBMPlexMono_600SemiBold,
+    Caveat_500Medium,
+    Caveat_600SemiBold,
   });
   useAuthRedirect();
   useDeviceServices();
-  const navigationTheme =
-    colorScheme === 'dark'
-      ? {
-          ...DarkTheme,
-          colors: {
-            ...DarkTheme.colors,
-            background: colors.paper,
-            card: colors.card,
-            text: colors.ink,
-            border: colors.line,
-            primary: colors.accent,
-          },
-        }
-      : {
-          ...DefaultTheme,
-          colors: {
-            ...DefaultTheme.colors,
-            background: colors.paper,
-            card: colors.card,
-            text: colors.ink,
-            border: colors.line,
-            primary: colors.accent,
-          },
-        };
+  // Both visual styles (journal and white) are light surfaces, so navigation chrome is always light
+  // and the system bar icons stay dark even when the device is in dark mode.
+  const navigationTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: colors.paper,
+      card: colors.paper,
+      text: colors.ink,
+      border: colors.line,
+      primary: colors.accent,
+    },
+  };
 
   useEffect(() => {
     void loadNotifications();
@@ -91,7 +97,8 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <View style={[{ flex: 1, backgroundColor: colors.paper }, themeVars]}>
-        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        <StatusBar style="dark" animated />
+        <NavigationBar style="dark" />
         <ThemeProvider value={navigationTheme}>
           <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }} />
           <ToastHost />

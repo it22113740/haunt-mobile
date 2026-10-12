@@ -38,7 +38,7 @@ export function useAuthRedirect() {
 
     if (role === 'USER') {
       if (!permsAsked) {
-        if (segments[1] !== 'permissions') router.replace('/(user)/permissions');
+        if ((segments as string[])[1] !== 'permissions') router.replace('/(user)/permissions');
         return;
       }
       if (group !== '(user)') router.replace('/(user)/(tabs)');

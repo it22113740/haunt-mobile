@@ -1,4 +1,4 @@
-import { AuthScaffold, TextLink } from '@/features/auth/components/auth-scaffold';
+import { AuthScaffold, FormError, TextLink } from '@/features/auth/components/auth-scaffold';
 import { PrimaryButton } from '@/features/auth/components/primary-button';
 import { RoleSwitch } from '@/features/auth/components/role-switch';
 import { TextField } from '@/features/auth/components/text-field';
@@ -6,20 +6,16 @@ import { useRegister } from '@/features/auth/hooks';
 import { registerSchema, type RegisterValues } from '@/features/auth/schemas';
 import { getApiErrorMessage } from '@/lib/api-error';
 import { useAuthStore } from '@/stores/auth';
-import { useHauntColors } from '@/theme/colors';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Lock, Mail, MapPin, User } from 'lucide-react-native';
 import { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { Text } from 'react-native';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 
 export function RegisterScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ role?: string | string[] }>();
   const roleParam = Array.isArray(params.role) ? params.role[0] : params.role;
   const preset = roleParam === 'OWNER' ? 'OWNER' : 'USER';
-  const colors = useHauntColors();
   const establishSession = useAuthStore((state) => state.establishSession);
   const register = useRegister();
   const [formError, setFormError] = useState<string | null>(null);
@@ -35,7 +31,7 @@ export function RegisterScreen() {
       password: '',
     },
   });
-  const role = form.watch('role');
+  const role = useWatch({ control: form.control, name: 'role' });
 
   const onSubmit = form.handleSubmit(async (values) => {
     setFormError(null);
@@ -52,7 +48,6 @@ export function RegisterScreen() {
 
   return (
     <AuthScaffold
-      illustration="onb-earn"
       title="Join Haunt"
       subtitle={
         role === 'USER'
@@ -65,7 +60,7 @@ export function RegisterScreen() {
       }}
       footer={
         <>
-          {formError ? <Text className="mb-3 text-center text-sm text-haunt-danger">{formError}</Text> : null}
+          <FormError message={formError} />
           <PrimaryButton label="Create account" onPress={onSubmit} loading={submitting} />
           <TextLink
             label="Already have an account?"
@@ -90,7 +85,6 @@ export function RegisterScreen() {
                 autoCapitalize="none"
                 autoComplete="username"
                 placeholder="johndoe"
-                leftIcon={<User color={colors.mute} size={18} />}
               />
             )}
           />
@@ -107,7 +101,6 @@ export function RegisterScreen() {
                 keyboardType="email-address"
                 autoComplete="email"
                 placeholder="you@email.com"
-                leftIcon={<Mail color={colors.mute} size={18} />}
               />
             )}
           />
@@ -127,7 +120,6 @@ export function RegisterScreen() {
                 keyboardType="email-address"
                 autoComplete="email"
                 placeholder="owner@email.com"
-                leftIcon={<Mail color={colors.mute} size={18} />}
               />
             )}
           />
@@ -143,7 +135,6 @@ export function RegisterScreen() {
                 error={fieldState.error?.message}
                 autoCapitalize="words"
                 placeholder="123 Main St"
-                leftIcon={<MapPin color={colors.mute} size={18} />}
               />
             )}
           />
@@ -161,8 +152,7 @@ export function RegisterScreen() {
             error={fieldState.error?.message}
             secure
             autoComplete="new-password"
-            placeholder="At least 8 characters"
-            leftIcon={<Lock color={colors.mute} size={18} />}
+            placeholder="8 characters or more"
           />
         )}
       />

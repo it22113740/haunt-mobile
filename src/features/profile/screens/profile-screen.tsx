@@ -1,22 +1,27 @@
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useListRefresh } from '@/components/list-refresh';
+import { EmptyState } from '@/components/empty-state';
 import { SkeletonBlock } from '@/components/skeleton';
+import { DashRule, Doodle } from '@/components/ui/decor';
+import { ScreenEnter } from '@/components/ui/enter';
+import { BackHeader } from '@/components/ui/screen-header';
+import { Body } from '@/components/ui/typography';
 import { AlertsCard } from '@/features/notifications/components/alerts-card';
 import { AvatarPicker } from '@/features/profile/components/avatar-picker';
 import { ChangePasswordForm } from '@/features/profile/components/change-password-form';
 import { ProfileForm } from '@/features/profile/components/profile-form';
 import { useProfile } from '@/features/profile/hooks';
 import { useAuthStore } from '@/stores/auth';
-import { ScreenEnter } from '@/components/ui/enter';
-import { BackButton } from '@/components/ui/icon-button';
+import { useSurfaces } from '@/theme/surfaces';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors, isJournal, isWhite } = useSurfaces();
   const profile = useProfile();
   const logout = useAuthStore((state) => state.logout);
   const refreshControl = useListRefresh([profile]);
@@ -30,58 +35,68 @@ export function ProfileScreen() {
   };
 
   return (
-    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top + 8 }}>
-      <View className="flex-row items-center px-4">
-        <BackButton />
-        <Text className="ml-3 font-display text-title text-haunt-ink">Profile</Text>
-      </View>
+    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top }}>
+      {profile.data ? null : (
+        <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 6 }}>
+          <BackHeader label="Profile" />
+        </View>
+      )}
 
       {profile.isPending ? (
-        <View className="px-6 pt-8">
-          <SkeletonBlock height={96} width={96} radius={48} />
-          <SkeletonBlock height={28} width="52%" />
-          <SkeletonBlock height={160} radius={24} />
+        <View style={{ paddingHorizontal: 20, paddingTop: 22, gap: 16 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+            <SkeletonBlock height={84} width={84} radius={42} />
+            <SkeletonBlock height={28} width="46%" />
+          </View>
+          <SkeletonBlock height={48} />
+          <SkeletonBlock height={48} />
         </View>
       ) : null}
 
       {profile.isError ? (
-        <Status
-          title="Couldn’t load your profile"
-          detail="Check your connection and try again."
-          action="Try again"
-          onPress={() => {
-            void profile.refetch();
-          }}
-        />
+        <View style={{ flex: 1, justifyContent: 'center' }}>
+          <EmptyState
+            title="Couldn’t load your profile"
+            detail="Check your connection and try again."
+            action="Try again"
+            onPress={() => {
+              void profile.refetch();
+            }}
+          />
+        </View>
       ) : null}
 
       {profile.data ? (
-        <ScrollView
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
-          refreshControl={refreshControl}
-          className="flex-1">
-          <View className="px-6 pt-8">
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: insets.bottom + 40, gap: 28 }}
+            refreshControl={refreshControl}
+            style={{ flex: 1 }}>
+            {isWhite ? (
+              <>
+                <Doodle kind="sparkle" size={18} accent style={{ left: 210, top: 74 }} />
+                <Doodle kind="sparkle" size={10} style={{ left: 234, top: 98 }} />
+              </>
+            ) : null}
+            <BackHeader label="Profile" />
             <AvatarPicker profile={profile.data} />
-            <Text className="mt-4 text-center font-display text-title text-haunt-ink">
-              {profile.data.username || profile.data.email}
-            </Text>
-            <View className="mt-3 self-center rounded-full bg-haunt-blush px-3 py-1">
-              <Text className="text-sm font-semibold text-haunt-accent">
-                {profile.data.role === 'OWNER' ? 'Owner' : 'Member'}
-              </Text>
-            </View>
             <ProfileForm profile={profile.data} />
+            <DashRule width={isJournal ? 1.5 : 1} />
             <ChangePasswordForm />
+            <DashRule width={isJournal ? 1.5 : 1} />
             <AlertsCard role={profile.data.role} pushToken={profile.data.pushToken} />
             <Pressable
               accessibilityRole="button"
               onPress={() => setConfirmingLogout(true)}
-              className="mt-6 h-14 items-center justify-center">
-              <Text className="text-base font-semibold text-haunt-danger">Log out</Text>
+              hitSlop={8}
+              style={{ alignSelf: 'center', padding: 12 }}>
+              <Body size={15} weight="bold" color={colors.danger}>
+                Log out
+              </Body>
             </Pressable>
-          </View>
-        </ScrollView>
+          </ScrollView>
+        </KeyboardAvoidingView>
       ) : null}
 
       <ConfirmDialog
@@ -95,35 +110,10 @@ export function ProfileScreen() {
       />
 
       {!profile.isPending && !profile.isError && !profile.data ? (
-        <Status title="No profile yet" detail="Sign in again if this keeps happening." />
+        <View style={{ flex: 1, justifyContent: 'center' }}>
+          <EmptyState title="No profile yet" detail="Sign in again if this keeps happening." />
+        </View>
       ) : null}
     </ScreenEnter>
-  );
-}
-
-function Status({
-  title,
-  detail,
-  action,
-  onPress,
-}: {
-  title: string;
-  detail: string;
-  action?: string;
-  onPress?: () => void;
-}) {
-  return (
-    <View className="flex-1 items-center justify-center px-8">
-      <Text className="text-center text-2xl font-semibold text-haunt-ink">{title}</Text>
-      <Text className="mt-3 text-center text-base text-haunt-mute">{detail}</Text>
-      {action && onPress ? (
-        <Pressable
-          accessibilityRole="button"
-          onPress={onPress}
-          className="mt-6 h-14 items-center justify-center rounded-2xl bg-haunt-accent px-6">
-          <Text className="text-base font-semibold text-haunt-onAccent">{action}</Text>
-        </Pressable>
-      ) : null}
-    </View>
   );
 }

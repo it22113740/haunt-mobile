@@ -1,12 +1,16 @@
-import { PrimaryButton } from '@/features/auth/components/primary-button';
-import { startGeofenceUpdates } from '@/features/location/tracking';
-import { useRouter } from 'expo-router';
-import * as Location from 'expo-location';
+import { Illustration } from '@/components/illustration';
+import { Ticks } from '@/components/ui/decor';
 import { ScreenEnter } from '@/components/ui/enter';
 import { BackButton } from '@/components/ui/icon-button';
 import { hapticWarning } from '@/components/ui/press';
+import { Body, H1, Label, Sub } from '@/components/ui/typography';
+import { PrimaryButton } from '@/features/auth/components/primary-button';
+import { startGeofenceUpdates } from '@/features/location/tracking';
+import { useSurfaces } from '@/theme/surfaces';
+import * as Location from 'expo-location';
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Platform, Pressable, Text, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Step = 'foreground' | 'background' | 'done';
@@ -14,6 +18,7 @@ type Step = 'foreground' | 'background' | 'done';
 export function LocationAccessScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors } = useSurfaces();
   const [step, setStep] = useState<Step>('foreground');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -92,18 +97,28 @@ export function LocationAccessScreen() {
         : 'Haunt will check your location in the background and send an arrival note when you are inside a place.';
 
   return (
-    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top + 8 }}>
-      <View className="px-4">
+    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top + 18 }}>
+      <View style={{ paddingHorizontal: 20 }}>
         <BackButton />
       </View>
-      <View className="flex-1 justify-end px-6" style={{ paddingBottom: insets.bottom + 24 }}>
-        <Text className="text-sm font-semibold uppercase tracking-wide text-haunt-mute">
-          {step === 'done' ? 'Ready' : step === 'foreground' ? 'Step 1 of 2' : 'Step 2 of 2'}
-        </Text>
-        <Text className="mt-3 font-display text-display-lg text-haunt-ink">{title}</Text>
-        <Text className="mt-4 text-base leading-6 text-haunt-mute">{body}</Text>
-        {message ? <Text className="mt-4 text-sm leading-5 text-haunt-ink">{message}</Text> : null}
-        <View className="mt-8 gap-3">
+      <View style={{ flex: 1, justifyContent: 'flex-end', paddingHorizontal: 20, paddingBottom: Math.max(insets.bottom, 14) + 10 }}>
+        <View style={{ alignItems: 'center', marginBottom: 12 }}>
+          <Illustration name={step === 'done' ? 'success-sent' : 'perm-location'} size={200} />
+        </View>
+        <View style={{ gap: 8 }}>
+          <Label color={colors.accentDeep}>
+            {step === 'done' ? 'Ready' : step === 'foreground' ? 'Step 1 of 2' : 'Step 2 of 2'}
+          </Label>
+          {step === 'done' ? null : <Ticks progress={step === 'foreground' ? 0.5 : 1} />}
+        </View>
+        <H1 style={{ marginTop: 14 }}>{title}</H1>
+        <Sub style={{ marginTop: 10, lineHeight: 22 }}>{body}</Sub>
+        {message ? (
+          <Body size={14} style={{ marginTop: 14 }} accessibilityLiveRegion="polite">
+            {message}
+          </Body>
+        ) : null}
+        <View style={{ marginTop: 28, gap: 6 }}>
           {step === 'foreground' ? (
             <PrimaryButton label="Continue" loading={busy} onPress={() => void allowForeground()} />
           ) : null}
@@ -115,8 +130,10 @@ export function LocationAccessScreen() {
             <Pressable
               accessibilityRole="button"
               onPress={() => router.back()}
-              className="h-14 items-center justify-center">
-              <Text className="text-base font-semibold text-haunt-ink">Not now</Text>
+              style={{ height: 52, alignItems: 'center', justifyContent: 'center' }}>
+              <Body size={15} weight="semibold" color={colors.accentDeep} style={{ textDecorationLine: 'underline' }}>
+                Not now
+              </Body>
             </Pressable>
           ) : null}
         </View>

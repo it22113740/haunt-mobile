@@ -23,14 +23,14 @@ export function usePressScale(enabled = true) {
 
   const onPressIn = () => {
     if (!enabled) return;
-    scale.value = withTiming(0.97, { duration: 80 });
+    scale.set(withTiming(0.97, { duration: 80 }));
     if (Platform.OS !== 'web') {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
   };
 
   const onPressOut = () => {
-    scale.value = withTiming(1, { duration: 120 });
+    scale.set(withTiming(1, { duration: 120 }));
   };
 
   return { style, onPressIn, onPressOut };

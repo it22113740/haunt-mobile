@@ -1,14 +1,17 @@
 import { ScreenState } from '@/components/screen-state';
+import { Ticks } from '@/components/ui/decor';
 import { ScreenEnter } from '@/components/ui/enter';
+import { Body, H1, Label, Sub } from '@/components/ui/typography';
 import { PerkForm } from '@/features/owner/components/perk-form';
 import { SetupFinish, SetupWelcome } from '@/features/owner/components/setup-intro';
 import { VenueForm } from '@/features/owner/components/venue-form';
 import { useMyPerks, useMyVenues } from '@/features/owner/hooks';
 import { useProfile, useSetOnboardingStep } from '@/features/profile/hooks';
 import { useUserLocation } from '@/features/venues/hooks';
+import { useSurfaces } from '@/theme/surfaces';
 import { useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type SetupScreen = 'welcome' | 'place' | 'perk' | 'done';
@@ -16,29 +19,27 @@ type SetupScreen = 'welcome' | 'place' | 'perk' | 'done';
 export function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { colors } = useSurfaces();
   const profile = useProfile();
   const venues = useMyVenues();
   const perks = useMyPerks();
   const location = useUserLocation();
   const setStep = useSetOnboardingStep();
-  const picked = useRef(false);
   const [screen, setScreen] = useState<SetupScreen | null>(null);
   const step = profile.data?.ownerProfile?.onboardingStep ?? 0;
   const hasVenue = (venues.data?.length ?? 0) > 0;
   const hasPerk = (perks.data?.length ?? 0) > 0;
 
+  const loaded = profile.isSuccess && venues.isSuccess && perks.isSuccess;
+  const alreadyDone = loaded && screen === null && step >= 3;
+
+  if (loaded && screen === null && step < 3) {
+    setScreen(hasVenue && hasPerk ? 'done' : hasVenue ? 'perk' : step === 0 ? 'welcome' : 'place');
+  }
+
   useEffect(() => {
-    if (!profile.isSuccess || !venues.isSuccess || !perks.isSuccess || picked.current) return;
-    if (step >= 3) {
-      router.replace('/(owner)/(tabs)');
-      return;
-    }
-    picked.current = true;
-    if (hasVenue && hasPerk) setScreen('done');
-    else if (hasVenue) setScreen('perk');
-    else if (step === 0) setScreen('welcome');
-    else setScreen('place');
-  }, [hasPerk, hasVenue, perks.isSuccess, profile.isSuccess, router, step, venues.isSuccess]);
+    if (alreadyDone) router.replace('/(owner)/(tabs)');
+  }, [alreadyDone, router]);
 
   const openTabs = () => {
     setStep.mutate(3, { onSuccess: () => router.replace('/(owner)/(tabs)') });
@@ -66,7 +67,7 @@ export function OnboardingScreen() {
 
   if (screen === 'welcome') {
     return (
-      <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top + 16 }}>
+      <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top + 18 }}>
         <SetupWelcome done={[hasVenue, hasPerk, false]} onStart={() => setScreen('place')} />
       </ScreenEnter>
     );
@@ -83,25 +84,23 @@ export function OnboardingScreen() {
   const place = screen === 'place';
 
   return (
-    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top + 16 }}>
-      <View className="px-6">
-        <View className="flex-row items-center justify-between">
-          <Text className="font-sans-semibold text-caption tracking-widest text-haunt-accent">
-            {place ? 'Step 1 of 2' : 'Step 2 of 2'}
-          </Text>
+    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top + 18 }}>
+      <View style={{ paddingHorizontal: 20, gap: 10 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 }}>
+          <Label color={colors.accentDeep}>{place ? 'Step 1 of 2' : 'Step 2 of 2'}</Label>
           {place ? null : (
-            <Pressable accessibilityRole="button" onPress={() => setScreen('done')} className="h-11 justify-center">
-              <Text className="font-sans-semibold text-body text-haunt-accent">Not now</Text>
+            <Pressable accessibilityRole="button" hitSlop={8} onPress={() => setScreen('done')}>
+              <Body size={15} weight="bold" color={colors.accentDeep} style={{ textDecorationLine: 'underline' }}>
+                Not now
+              </Body>
             </Pressable>
           )}
         </View>
-        <View className="mt-3 h-2 overflow-hidden rounded-full bg-haunt-blush">
-          <View className="h-2 rounded-full bg-haunt-accent" style={{ width: place ? '50%' : '100%' }} />
-        </View>
-        <Text className="mt-4 font-display text-title text-haunt-ink">{place ? 'Add your place' : 'Add a perk'}</Text>
-        <Text className="mt-2 font-sans text-body text-haunt-mute">
-          {place ? 'Guests earn points when a visit here is approved.' : 'This is what they can spend those points on.'}
-        </Text>
+        <Ticks progress={place ? 0.5 : 1} />
+        <H1 size={28} style={{ marginTop: 8 }}>
+          {place ? 'Add your place' : 'Add a perk'}
+        </H1>
+        <Sub>{place ? 'Guests earn points when a visit here is approved.' : 'This is what they can spend those points on.'}</Sub>
       </View>
       {place ? (
         <VenueForm

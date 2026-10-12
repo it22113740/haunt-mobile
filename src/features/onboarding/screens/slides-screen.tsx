@@ -1,9 +1,12 @@
+import { MotionView } from '@/components/ui/animated';
 import { Illustration, type IllustrationName } from '@/components/illustration';
 import { Button } from '@/components/ui/button';
 import { ScreenEnter } from '@/components/ui/enter';
+import { Body, H1, Label, Sub, Wordmark } from '@/components/ui/typography';
+import { useSurfaces } from '@/theme/surfaces';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, useWindowDimensions, View } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
@@ -41,6 +44,7 @@ const slides: { name: IllustrationName; title: string; body: string }[] = [
 export function SlidesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors } = useSurfaces();
   const { width } = useWindowDimensions();
   const scrollX = useSharedValue(0);
   const pageWidth = useSharedValue(width);
@@ -66,10 +70,13 @@ export function SlidesScreen() {
   const goRole = () => router.push('/(onboarding)/role');
 
   return (
-    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top + 8 }}>
-      <View className="items-end px-6">
-        <Pressable accessibilityRole="button" onPress={goRole} className="h-11 justify-center">
-          <Text className="font-sans-semibold text-body text-haunt-mute">Skip</Text>
+    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top + 12 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20 }}>
+        <Wordmark />
+        <Pressable accessibilityRole="button" onPress={goRole} hitSlop={8} style={{ height: 44, justifyContent: 'center' }}>
+          <Body size={15} weight="semibold" color={colors.mute} style={{ textDecorationLine: 'underline' }}>
+            Skip
+          </Body>
         </Pressable>
       </View>
       <Animated.FlatList
@@ -87,9 +94,9 @@ export function SlidesScreen() {
           <Slide item={item} index={itemIndex} width={width} scrollX={scrollX} />
         )}
       />
-      <View className="px-6" style={{ paddingBottom: Math.max(insets.bottom, 16) }}>
+      <View style={{ paddingHorizontal: 20, paddingBottom: Math.max(insets.bottom, 14) + 10 }}>
         <Dots count={slides.length} scrollX={scrollX} width={width} />
-        <View className="mt-6">
+        <View style={{ marginTop: 24 }}>
           <Button
             label={index === slides.length - 1 ? 'Get started' : 'Next'}
             onPress={() => {
@@ -117,6 +124,7 @@ function Slide({
   width: number;
   scrollX: SharedValue<number>;
 }) {
+  const { colors } = useSurfaces();
   const art = useAnimatedStyle(() => {
     const range = [(index - 1) * width, index * width, (index + 1) * width];
     return {
@@ -126,22 +134,22 @@ function Slide({
   });
 
   return (
-    <View style={{ width }} className="flex-1 justify-center px-8">
-      <View className="items-center justify-center">
-        <View className="absolute h-64 w-64 rounded-full bg-haunt-blush" />
-        <Animated.View style={art}>
-          <Illustration name={item.name} size={220} />
-        </Animated.View>
+    <View style={{ width, flex: 1, justifyContent: 'center', paddingHorizontal: 28 }}>
+      <MotionView style={[art, { alignItems: 'center' }]}>
+        <Illustration name={item.name} size={240} />
+      </MotionView>
+      <View style={{ marginTop: 28, gap: 10, alignItems: 'center' }}>
+        <Label color={colors.accentDeep}>{`${String(index + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`}</Label>
+        <H1 style={{ textAlign: 'center' }}>{item.title}</H1>
+        <Sub style={{ textAlign: 'center', maxWidth: 320 }}>{item.body}</Sub>
       </View>
-      <Text className="mt-10 text-center font-display text-display-lg text-haunt-ink">{item.title}</Text>
-      <Text className="mt-3 text-center font-sans text-body text-haunt-mute">{item.body}</Text>
     </View>
   );
 }
 
 function Dots({ count, scrollX, width }: { count: number; scrollX: SharedValue<number>; width: number }) {
   return (
-    <View className="flex-row items-center justify-center gap-2">
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
       {Array.from({ length: count }, (_, index) => (
         <Dot key={index} index={index} scrollX={scrollX} width={width} />
       ))}
@@ -150,10 +158,11 @@ function Dots({ count, scrollX, width }: { count: number; scrollX: SharedValue<n
 }
 
 function Dot({ index, scrollX, width }: { index: number; scrollX: SharedValue<number>; width: number }) {
+  const { colors } = useSurfaces();
   const style = useAnimatedStyle(() => {
     const progress = interpolate(scrollX.value / width, [index - 1, index, index + 1], [0, 1, 0], Extrapolation.CLAMP);
-    return { width: interpolate(progress, [0, 1], [8, 24]) };
+    return { width: interpolate(progress, [0, 1], [8, 24]), opacity: interpolate(progress, [0, 1], [0.3, 1]) };
   });
 
-  return <Animated.View style={style} className="h-2 rounded-full bg-haunt-accent" />;
+  return <MotionView style={[{ height: 8, borderRadius: 4, backgroundColor: colors.accent }, style]} />;
 }

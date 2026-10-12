@@ -1,3 +1,4 @@
+import { useHauntTheme } from '@/theme/colors';
 import type { ReactNode } from 'react';
 import { Modal, Pressable, View } from 'react-native';
 import Animated, { SlideInDown } from 'react-native-reanimated';
@@ -7,20 +8,46 @@ type BottomSheetProps = {
   visible: boolean;
   onClose: () => void;
   children: ReactNode;
+  accessibilityLabel?: string;
 };
 
-export function BottomSheet({ visible, onClose, children }: BottomSheetProps) {
+export function BottomSheet({ visible, onClose, children, accessibilityLabel }: BottomSheetProps) {
   const insets = useSafeAreaInsets();
+  const { colors, isJournal } = useHauntTheme();
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View className="flex-1 justify-end">
-        <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={onClose} className="absolute inset-0 bg-black/40" />
+    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
+      <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+          onPress={onClose}
+          style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: colors.scrim }}
+        />
         <Animated.View
           entering={SlideInDown.duration(240)}
-          className="rounded-t-3xl bg-haunt-card px-6 pt-3"
-          style={{ paddingBottom: insets.bottom + 16 }}>
-          <View className="mb-4 h-1.5 w-10 self-center rounded-full bg-haunt-line" />
+          accessibilityViewIsModal
+          accessibilityLabel={accessibilityLabel}
+          style={{
+            backgroundColor: colors.paper,
+            borderTopWidth: isJournal ? 1.5 : 1,
+            borderTopColor: isJournal ? colors.ink : colors.line,
+            borderTopLeftRadius: 18,
+            borderTopRightRadius: 18,
+            paddingHorizontal: 20,
+            paddingTop: 12,
+            paddingBottom: Math.max(insets.bottom, 14) + 16,
+          }}>
+          <View
+            style={{
+              alignSelf: 'center',
+              width: 40,
+              height: 4,
+              borderRadius: 9,
+              backgroundColor: colors.lineStrong,
+              marginBottom: 20,
+            }}
+          />
           {children}
         </Animated.View>
       </View>

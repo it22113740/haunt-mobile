@@ -1,25 +1,39 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Doodle } from '@/components/ui/decor';
 import { ListEnter, ScreenEnter } from '@/components/ui/enter';
+import { Body, Hand, Label, MarkedHeading, Sub } from '@/components/ui/typography';
 import { useLaunchFlags } from '@/lib/launch-flags';
-import { useHauntColors } from '@/theme/colors';
+import { useSurfaces } from '@/theme/surfaces';
 import { useRouter } from 'expo-router';
-import { Compass, Store, type LucideIcon } from 'lucide-react-native';
+import { Check, Compass, Store, type LucideIcon } from 'lucide-react-native';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Role = 'USER' | 'OWNER';
 
-const choices: { role: Role; title: string; detail: string; icon: LucideIcon }[] = [
-  { role: 'USER', title: "I'm here to explore", detail: 'Find places, post visits, and spend points.', icon: Compass },
-  { role: 'OWNER', title: 'I own a venue', detail: 'Publish perks and approve guest visits.', icon: Store },
+const choices: { role: Role; tag: string; title: string; detail: string; icon: LucideIcon }[] = [
+  {
+    role: 'USER',
+    tag: 'Explorer',
+    title: 'I’m here to explore',
+    detail: 'Find places, post visits, and spend points.',
+    icon: Compass,
+  },
+  {
+    role: 'OWNER',
+    tag: 'Business',
+    title: 'I own a venue',
+    detail: 'Publish perks and approve guest visits.',
+    icon: Store,
+  },
 ];
 
 export function RoleScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const colors = useHauntColors();
+  const { colors, surfaces } = useSurfaces();
   const completeOnboarding = useLaunchFlags((state) => state.completeOnboarding);
   const [role, setRole] = useState<Role>('USER');
   const [busy, setBusy] = useState(false);
@@ -36,39 +50,84 @@ export function RoleScreen() {
 
   return (
     <ScreenEnter
-      className="flex-1 justify-between bg-haunt-paper px-6"
-      style={{ paddingTop: insets.top + 24, paddingBottom: Math.max(insets.bottom, 16) }}>
+      className="flex-1 bg-haunt-paper"
+      style={{
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingTop: insets.top + 28,
+        paddingBottom: Math.max(insets.bottom, 14) + 10,
+      }}>
       <View>
-        <Text className="font-display text-display-lg text-haunt-ink">How will you use Haunt?</Text>
-        <Text className="mt-3 font-sans text-body text-haunt-mute">You can switch later by creating the other kind of account.</Text>
-        <View className="mt-8 gap-4">
+        <Doodle kind="sparkle" size={18} accent style={{ right: 6, top: 0 }} />
+        <Doodle kind="sparkle" size={10} style={{ right: 30, top: 24 }} />
+        <View style={{ gap: 10 }}>
+          <Label>Welcome</Label>
+          <MarkedHeading before="How will you use " mark="Haunt" after="?" />
+          <Sub>You can switch later by creating the other kind of account.</Sub>
+        </View>
+        <View accessibilityRole="radiogroup" style={{ marginTop: 28, gap: 14 }}>
           {choices.map((choice, index) => {
             const selected = role === choice.role;
             const Icon = choice.icon;
             return (
               <ListEnter key={choice.role} index={index}>
-              <Card
-                onPress={() => setRole(choice.role)}
-                className={`border-2 p-5 ${selected ? 'border-haunt-ink' : 'border-transparent'}`}>
-                <View className="flex-row items-center">
-                  <View className="h-12 w-12 items-center justify-center rounded-2xl bg-haunt-blush">
-                    <Icon color={colors.accent} size={22} />
-                  </View>
-                  <View className="ml-4 flex-1">
-                    <Text className="font-display text-title text-haunt-ink">{choice.title}</Text>
-                    <Text className="mt-1 font-sans text-caption text-haunt-mute">{choice.detail}</Text>
-                  </View>
-                </View>
-              </Card>
+                <Pressable
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected }}
+                  accessibilityLabel={`${choice.title}. ${choice.detail}`}
+                  onPress={() => setRole(choice.role)}>
+                  <Card tone={selected ? 'selected' : 'soft'} style={{ padding: 16 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                      <View
+                        style={[
+                          surfaces.avatar,
+                          { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+                        ]}>
+                        <Icon color={colors.ink} size={22} strokeWidth={1.8} />
+                      </View>
+                      <View style={{ flex: 1, gap: 3 }}>
+                        <Label color={selected ? colors.accentDeep : colors.mute}>{choice.tag}</Label>
+                        <Body size={18} weight="bold">
+                          {choice.title}
+                        </Body>
+                        <Body size={14} color={colors.mute}>
+                          {choice.detail}
+                        </Body>
+                      </View>
+                      <View
+                        style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: 12,
+                          borderWidth: 1.5,
+                          borderColor: selected ? colors.accent : colors.lineStrong,
+                          backgroundColor: selected ? colors.accent : 'transparent',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}>
+                        {selected ? <Check color={colors.ink} size={14} strokeWidth={3} /> : null}
+                      </View>
+                    </View>
+                  </Card>
+                </Pressable>
               </ListEnter>
             );
           })}
         </View>
+        <Hand style={{ marginTop: 18, transform: [{ rotate: '-1deg' }] }}>
+          {role === 'USER' ? 'points for every good night out' : 'turn regulars into promoters'}
+        </Hand>
       </View>
-      <View>
+      <View style={{ gap: 4 }}>
         <Button label="Continue" onPress={() => void finish('register')} loading={busy} />
-        <Pressable accessibilityRole="button" onPress={() => void finish('login')} className="mt-2 h-14 items-center justify-center">
-          <Text className="font-sans-semibold text-body text-haunt-ink">I already have an account</Text>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => void finish('login')}
+          disabled={busy}
+          style={{ height: 52, alignItems: 'center', justifyContent: 'center' }}>
+          <Body size={15} weight="semibold" color={colors.accentDeep} style={{ textDecorationLine: 'underline' }}>
+            I already have an account
+          </Body>
         </Pressable>
       </View>
     </ScreenEnter>

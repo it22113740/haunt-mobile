@@ -1,11 +1,11 @@
 import { vars } from 'nativewind';
 import { useColorScheme } from 'react-native';
-import { hauntTokens } from '@/theme/tokens';
+import { hauntTokens, type HauntVariant } from '@/theme/tokens';
 
-export type HauntColors = { [Key in keyof typeof hauntTokens.light]: string };
+export type HauntColors = { [Key in keyof typeof hauntTokens.journal]: string };
 
-export const hauntLight: HauntColors = hauntTokens.light;
-export const hauntDark: HauntColors = hauntTokens.dark;
+export const hauntJournal: HauntColors = hauntTokens.journal;
+export const hauntWhite: HauntColors = hauntTokens.white;
 
 function channels(hex: string) {
   const value = hex.replace('#', '');
@@ -20,7 +20,9 @@ export function hauntCssVariables(colors: HauntColors) {
     '--haunt-paper': channels(colors.paper),
     '--haunt-ink': channels(colors.ink),
     '--haunt-mute': channels(colors.mute),
+    '--haunt-faint': channels(colors.faint),
     '--haunt-line': channels(colors.line),
+    '--haunt-line-strong': channels(colors.lineStrong),
     '--haunt-card': channels(colors.card),
     '--haunt-accent': channels(colors.accent),
     '--haunt-accent-deep': channels(colors.accentDeep),
@@ -31,12 +33,22 @@ export function hauntCssVariables(colors: HauntColors) {
     '--haunt-good': channels(colors.good),
     '--haunt-good-soft': channels(colors.goodSoft),
     '--haunt-on-accent': channels(colors.onAccent),
+    '--haunt-placeholder': channels(colors.placeholder),
   };
 }
 
+export function useHauntVariant(): HauntVariant {
+  return useColorScheme() === 'dark' ? 'journal' : 'white';
+}
+
 export function useHauntColors() {
-  const scheme = useColorScheme();
-  return scheme === 'dark' ? hauntDark : hauntLight;
+  return useHauntVariant() === 'journal' ? hauntJournal : hauntWhite;
+}
+
+export function useHauntTheme() {
+  const variant = useHauntVariant();
+  const colors = variant === 'journal' ? hauntJournal : hauntWhite;
+  return { variant, colors, isJournal: variant === 'journal', isWhite: variant === 'white' };
 }
 
 export function useHauntVars() {

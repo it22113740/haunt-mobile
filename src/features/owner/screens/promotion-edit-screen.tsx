@@ -45,7 +45,7 @@ export function PromotionEditScreen({ promotionId }: PromotionEditScreenProps) {
 
   return (
     <ScreenEnter className="flex-1 bg-haunt-paper">
-      <FormHeader title={promotion ? 'Edit promotion' : 'New promotion'} />
+      <FormHeader title={promotion ? 'Edit offer' : 'New offer'} />
       <PromotionForm promotion={promotion} venues={venues.data ?? []} onSaved={() => router.back()} />
     </ScreenEnter>
   );

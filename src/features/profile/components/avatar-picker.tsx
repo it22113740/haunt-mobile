@@ -1,12 +1,14 @@
-import { CachedImage } from '@/components/cached-image';
+import { Avatar } from '@/components/ui/avatar';
+import { Stamp } from '@/components/ui/decor';
+import { CameraIcon } from '@/components/ui/hunt-icons';
+import { Body, H1 } from '@/components/ui/typography';
 import { useUploadAvatar } from '@/features/profile/hooks';
 import type { Profile } from '@/features/profile/schemas';
 import { getApiErrorMessage } from '@/lib/api-error';
-import { useHauntColors } from '@/theme/colors';
+import { useSurfaces } from '@/theme/surfaces';
 import * as ImagePicker from 'expo-image-picker';
-import { Camera } from 'lucide-react-native';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 
 type AvatarPickerProps = {
   profile: Profile;
@@ -14,9 +16,10 @@ type AvatarPickerProps = {
 
 export function AvatarPicker({ profile }: AvatarPickerProps) {
   const upload = useUploadAvatar();
-  const colors = useHauntColors();
+  const { colors, surfaces } = useSurfaces();
   const [error, setError] = useState<string | null>(null);
-  const initial = (profile.username || profile.email).slice(0, 1).toUpperCase();
+  const name = profile.username || profile.email;
+  const displayName = profile.username ? profile.username.charAt(0).toUpperCase() + profile.username.slice(1) : name;
 
   const onPick = async () => {
     setError(null);
@@ -47,34 +50,52 @@ export function AvatarPicker({ profile }: AvatarPickerProps) {
   };
 
   return (
-    <View className="items-center">
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Change profile photo"
-        onPress={() => {
-          void onPick();
-        }}
-        className="h-24 w-24 items-center justify-center">
-        {profile.imageUrl ? (
-          <CachedImage
-            source={{ uri: profile.imageUrl }}
-            style={{ width: 96, height: 96, borderRadius: 48 }}
-            contentFit="cover"
-          />
-        ) : (
-          <View className="h-24 w-24 items-center justify-center rounded-full bg-haunt-blush">
-            <Text className="text-3xl font-semibold text-haunt-accent">{initial}</Text>
+    <View style={{ gap: 10 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Change profile photo"
+          accessibilityState={{ busy: upload.isPending }}
+          disabled={upload.isPending}
+          onPress={() => {
+            void onPick();
+          }}
+          style={{ width: 84, height: 84 }}>
+          <Avatar imageUrl={profile.imageUrl} name={name} size={84} />
+          <View
+            style={[
+              surfaces.iconButton,
+              {
+                position: 'absolute',
+                right: -4,
+                bottom: -4,
+                width: 34,
+                height: 34,
+                borderRadius: 17,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: colors.accent,
+              },
+            ]}>
+            {upload.isPending ? (
+              <ActivityIndicator size="small" color={colors.ink} />
+            ) : (
+              <CameraIcon color={colors.ink} size={16} strokeWidth={2} />
+            )}
           </View>
-        )}
-        <View className="absolute bottom-0 right-0 h-11 w-11 items-center justify-center rounded-full bg-haunt-ink">
-          {upload.isPending ? (
-            <ActivityIndicator color={colors.card} />
-          ) : (
-            <Camera color={colors.card} size={18} />
-          )}
+        </Pressable>
+        <View style={{ flex: 1, gap: 6, alignItems: 'flex-start' }}>
+          <H1 size={28} numberOfLines={1}>
+            {displayName}
+          </H1>
+          <Stamp label={profile.role === 'OWNER' ? 'Business' : 'Explorer'} tone="wait" />
         </View>
-      </Pressable>
-      {error ? <Text className="mt-3 text-center text-sm text-haunt-danger">{error}</Text> : null}
+      </View>
+      {error ? (
+        <Body size={14} color={colors.danger}>
+          {error}
+        </Body>
+      ) : null}
     </View>
   );
 }

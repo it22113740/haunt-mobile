@@ -1,11 +1,15 @@
 import { showToast } from '@/components/toast';
 import { Button } from '@/components/ui/button';
+import { DashRule, Stamp, Tape } from '@/components/ui/decor';
+import { Body, Hand, Label, Sub } from '@/components/ui/typography';
 import type { Redemption } from '@/features/wallet/schemas';
-import { useHauntColors } from '@/theme/colors';
+import { monthDay } from '@/lib/dates';
+import { useSurfaces } from '@/theme/surfaces';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { Copy } from 'lucide-react-native';
 import { Modal, Platform, Text, View } from 'react-native';
+import Animated, { ZoomIn } from 'react-native-reanimated';
 
 type PromoModalProps = {
   redemption: Redemption | null;
@@ -13,7 +17,8 @@ type PromoModalProps = {
 };
 
 export function PromoModal({ redemption, onClose }: PromoModalProps) {
-  const colors = useHauntColors();
+  const { colors, surfaces, isJournal } = useSurfaces();
+  const used = redemption?.status === 'USED';
 
   const copy = async () => {
     if (!redemption) return;
@@ -23,29 +28,55 @@ export function PromoModal({ redemption, onClose }: PromoModalProps) {
   };
 
   return (
-    <Modal visible={Boolean(redemption)} transparent animationType="fade" onRequestClose={onClose}>
-      <View className="flex-1 items-center justify-center bg-black/40 px-6">
-        <View className="w-full rounded-3xl bg-haunt-card">
-          <View className="px-6 pb-5 pt-6">
-            <Text className="font-sans-semibold text-caption tracking-widest text-haunt-accent">YOUR CODE</Text>
-            <Text className="mt-3 font-mono-bold text-display-lg text-haunt-ink">{redemption?.promoCode}</Text>
-            <Text className="mt-2 font-sans-semibold text-body text-haunt-ink">{redemption?.perk.title}</Text>
-          </View>
-          <View className="flex-row items-center">
-            <View className="-ml-3 h-6 w-6 rounded-full bg-black/40" />
-            <View className="mx-2 h-px flex-1 border-t border-dashed border-haunt-line" />
-            <View className="-mr-3 h-6 w-6 rounded-full bg-black/40" />
-          </View>
-          <View className="px-6 pb-6 pt-5">
-            <Text className="text-center font-sans text-body text-haunt-mute">Show this to staff</Text>
-            <View className="mt-4">
-              <Button label="Copy" variant="secondary" leftIcon={<Copy color={colors.accent} size={18} />} onPress={() => void copy()} />
+    <Modal visible={Boolean(redemption)} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingHorizontal: 20,
+          backgroundColor: colors.scrim,
+        }}>
+        <Animated.View
+          entering={ZoomIn.duration(220)}
+          accessibilityViewIsModal
+          style={[surfaces.raised, { width: '100%', maxWidth: 420 }]}>
+          <Tape rotate={-5} style={{ top: -12, left: 24 }} />
+          <Tape ash rotate={6} style={{ top: -12, right: 24 }} />
+          <View style={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 18, gap: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Label>Your code</Label>
+              <Stamp label={used ? 'Used' : 'Ready'} tone={used ? 'used' : 'wait'} rotate={-4} />
             </View>
-            <View className="mt-2">
-              <Button label="Done" variant="ghost" onPress={onClose} />
-            </View>
+            <Text
+              selectable
+              accessibilityLabel={`Code ${redemption?.promoCode.split('').join(' ')}`}
+              style={{
+                fontFamily: 'IBMPlexMono_500Medium',
+                fontSize: 26,
+                letterSpacing: 1.6,
+                color: used ? colors.mute : colors.ink,
+                textDecorationLine: used ? 'line-through' : 'none',
+              }}>
+              {redemption?.promoCode}
+            </Text>
+            <Body size={17} weight="bold">
+              {redemption?.perk.title}
+            </Body>
+            {redemption ? (
+              <Body size={13} color={colors.mute}>
+                {`${redemption.perk.venue.name} · ${redemption.pointsSpent} pts · ${monthDay(redemption.createdAt)}`}
+              </Body>
+            ) : null}
           </View>
-        </View>
+          <DashRule width={isJournal ? 1.5 : 1} />
+          <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 20, gap: 10 }}>
+            <Sub size={14}>Show it at the bar and they’ll mark it used. Each code works once.</Sub>
+            {!used ? <Hand>enjoy it!</Hand> : null}
+            <Button label="Copy code" leftIcon={<Copy color={colors.onAccent} size={18} />} onPress={() => void copy()} />
+            <Button label="Done" variant="secondary" onPress={onClose} />
+          </View>
+        </Animated.View>
       </View>
     </Modal>
   );

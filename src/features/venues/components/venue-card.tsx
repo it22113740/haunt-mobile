@@ -1,51 +1,55 @@
+import { PressScale } from '@/components/ui/press-scale';
 import { CachedImage } from '@/components/cached-image';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import { PointsPill } from '@/components/ui/points-pill';
+import { Placeholder } from '@/components/ui/decor';
+import { Body, Label, Mono, Pts } from '@/components/ui/typography';
 import { formatDistance, type Venue } from '@/features/venues/schemas';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Text, View } from 'react-native';
+import { useSurfaces } from '@/theme/surfaces';
+import { View } from 'react-native';
 
 type VenueCardProps = {
   venue: Venue;
+  index: number;
   onPress: () => void;
 };
 
-export function VenueCard({ venue, onPress }: VenueCardProps) {
+/** Numbered journal row: index, photo, name, address and what a visit earns. */
+export function VenueCard({ venue, index, onPress }: VenueCardProps) {
+  const { colors, surfaces } = useSurfaces();
+  const distance = venue.distance !== undefined ? formatDistance(venue.distance) : null;
   return (
-    <Card onPress={onPress} className="mb-4">
-      <View className="h-[180px] justify-end">
-        {venue.imageUrl ? (
-          <CachedImage source={{ uri: venue.imageUrl }} style={{ height: 180, width: '100%' }} contentFit="cover" />
-        ) : (
-          <View className="h-[180px] items-center justify-center bg-haunt-blush">
-            <Text className="font-sans-semibold text-body text-haunt-accent">{venue.category || 'Venue'}</Text>
-          </View>
-        )}
-        <LinearGradient
-          colors={['transparent', 'rgba(28,22,18,0.45)']}
-          style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 72 }}
-        />
-        {venue.category ? (
-          <View className="absolute left-3 top-3">
-            <Badge label={venue.category} tone="accent" />
-          </View>
-        ) : null}
-        {venue.distance !== undefined ? (
-          <View className="absolute right-3 top-3 rounded-full bg-haunt-card px-3 py-1">
-            <Text className="font-sans-semibold text-caption text-haunt-ink">{formatDistance(venue.distance)}</Text>
-          </View>
-        ) : null}
-      </View>
-      <View className="p-5">
-        <Text className="font-display text-title text-haunt-ink">{venue.name}</Text>
-        <Text className="mt-1 font-sans text-caption text-haunt-mute" numberOfLines={2}>
-          {venue.address}
-        </Text>
-        <View className="mt-3">
-          <PointsPill value={`+${venue.pointsPerPhoto} photo · +${venue.pointsPerVideo} video`} />
+    <PressScale
+      accessibilityRole="button"
+      accessibilityLabel={`${venue.name}, ${venue.address}${distance ? `, ${distance} away` : ''}`}
+      onPress={onPress}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 14,
+        paddingVertical: 14,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.line,
+      }}>
+      <Mono size={12} color={colors.faint} style={{ width: 18 }}>
+        {String(index + 1).padStart(2, '0')}
+      </Mono>
+      {venue.imageUrl ? (
+        <View style={[surfaces.image, { width: 76, height: 76, borderRadius: 8, overflow: 'hidden' }]}>
+          <CachedImage source={{ uri: venue.imageUrl }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
         </View>
+      ) : (
+        <Placeholder style={{ width: 76, height: 76 }}>
+          <Label>{venue.category || 'Place'}</Label>
+        </Placeholder>
+      )}
+      <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+        <Body size={18} weight="bold" numberOfLines={1}>
+          {venue.name}
+        </Body>
+        <Body size={14} color={colors.mute} numberOfLines={1}>
+          {distance ? `${distance} · ${venue.address}` : venue.address}
+        </Body>
+        <Pts>{`+${venue.pointsPerPhoto} photo · +${venue.pointsPerVideo} video`}</Pts>
       </View>
-    </Card>
+    </PressScale>
   );
 }

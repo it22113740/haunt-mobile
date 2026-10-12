@@ -10,9 +10,14 @@ const UPDATE_OPTIONS: Location.LocationTaskOptions = {
   foregroundService: {
     notificationTitle: 'Haunt',
     notificationBody: 'Checking when you arrive at a place.',
-    notificationColor: '#C4512C',
+    notificationColor: '#FC6401',
   },
 };
+
+export async function isGeofenceActive(): Promise<boolean> {
+  if (Platform.OS === 'web') return false;
+  return Location.hasStartedLocationUpdatesAsync(GEOFENCE_TASK).catch(() => false);
+}
 
 export async function startGeofenceUpdates(): Promise<boolean> {
   if (Platform.OS === 'web') return false;

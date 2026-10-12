@@ -10,6 +10,7 @@ import {
 import type { Venue } from '@/features/venues/schemas';
 import * as Location from 'expo-location';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Platform } from 'react-native';
 
 async function readGrantedLocation() {
   const permission = await Location.getForegroundPermissionsAsync();
@@ -33,6 +34,26 @@ export function useUserLocation() {
             setTimeout(() => resolve(null), 4000);
           }),
         ]);
+      } catch {
+        return null;
+      }
+    },
+  });
+}
+
+/** City name for the header label; `null` when location is off or the lookup fails. */
+export function useCityName(coords?: { lat: number; lng: number } | null) {
+  const lat = coords ? Math.round(coords.lat * 100) / 100 : 0;
+  const lng = coords ? Math.round(coords.lng * 100) / 100 : 0;
+  return useQuery({
+    queryKey: queryKeys.city(lat, lng),
+    enabled: Boolean(coords) && Platform.OS !== 'web',
+    staleTime: Infinity,
+    retry: false,
+    queryFn: async () => {
+      try {
+        const [place] = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
+        return place?.city || place?.subregion || place?.region || null;
       } catch {
         return null;
       }

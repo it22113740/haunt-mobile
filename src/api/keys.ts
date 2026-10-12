@@ -2,6 +2,7 @@ export const queryKeys = {
   authMe: ['auth', 'me'] as const,
   profile: ['users', 'me'] as const,
   location: ['location'] as const,
+  city: (lat: number, lng: number) => ['location', 'city', lat, lng] as const,
   venues: ['venues'] as const,
   venuesNear: (lat: number, lng: number) => ['venues', 'near', lat, lng] as const,
   venuePerks: (venueId: string) => ['perks', 'venue', venueId] as const,

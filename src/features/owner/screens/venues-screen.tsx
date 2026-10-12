@@ -5,23 +5,27 @@ import { useListRefresh } from '@/components/list-refresh';
 import { ScreenState } from '@/components/screen-state';
 import { ActionMenu } from '@/components/ui/action-menu';
 import { Card } from '@/components/ui/card';
+import { StatStrip } from '@/components/ui/controls';
+import { Doodle, Placeholder, Tape } from '@/components/ui/decor';
 import { ListEnter, ScreenEnter } from '@/components/ui/enter';
-import { AppHeader, ScreenHeader } from '@/components/ui/screen-header';
+import { AppHeader } from '@/components/ui/screen-header';
 import { useTabBarInset } from '@/components/ui/tab-bar';
-import { AddFab } from '@/features/owner/components/add-fab';
+import { Body, H2, Label, MarkedHeading, Mono } from '@/components/ui/typography';
+import { AddTile } from '@/features/owner/components/add-tile';
 import { useDeleteVenue, useMyPerks, useMyVenues, useOwnerRedemptions, useOwnerSubmissions } from '@/features/owner/hooks';
 import type { OwnerVenue } from '@/features/owner/schemas';
 import { getApiErrorMessage } from '@/lib/api-error';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useSurfaces } from '@/theme/surfaces';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, Text, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function VenuesScreen() {
   const insets = useSafeAreaInsets();
   const tabInset = useTabBarInset();
   const router = useRouter();
+  const { colors, isWhite } = useSurfaces();
   const venues = useMyVenues();
   const perks = useMyPerks();
   const submissions = useOwnerSubmissions();
@@ -47,49 +51,87 @@ export function VenuesScreen() {
   }
 
   const places = venues.data ?? [];
+  const addPlace = () => router.push('/(owner)/venue/new');
 
   return (
-    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top + 8 }}>
-      <AppHeader />
+    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top }}>
       <FlatList
         style={{ flex: 1 }}
         data={places}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingBottom: tabInset + 72, flexGrow: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 22, paddingBottom: tabInset, flexGrow: 1 }}
         refreshControl={refreshControl}
+        ItemSeparatorComponent={() => <View style={{ height: 22 }} />}
         ListHeaderComponent={
-          <View className="mb-4">
-            <ScreenHeader title="Your places" subtitle="The restaurants and bars guests can visit." />
-            <View className="mt-4 flex-row gap-3 px-6">
-              <StatCard label="Waiting review" value={submissions.isSuccess ? waiting : '–'} onPress={() => router.push('/(owner)/(tabs)/review')} />
-              <StatCard label="Codes issued" value={redemptions.isSuccess ? codes : '–'} onPress={() => router.push('/(owner)/(tabs)/redemptions')} />
-              <StatCard label="Active perks" value={perks.isSuccess ? activePerks : '–'} onPress={() => router.push('/(owner)/(tabs)/perks')} />
-            </View>
-            {error ? <Text className="mt-3 px-6 font-sans text-caption text-haunt-danger">{error}</Text> : null}
+          <View style={{ gap: 22, marginBottom: 22 }}>
+            <AppHeader tag="for business" />
+            <MarkedHeading mark="Your places" marked={isWhite} />
+            <StatStrip
+              items={[
+                {
+                  key: 'review',
+                  value: submissions.isSuccess ? waiting : '–',
+                  label: 'To review',
+                  onPress: () => router.push('/(owner)/(tabs)/review'),
+                  accessibilityLabel: `${waiting} to review. Open review`,
+                },
+                {
+                  key: 'codes',
+                  value: redemptions.isSuccess ? codes : '–',
+                  label: codes === 1 ? 'Code issued' : 'Codes issued',
+                  onPress: () => router.push('/(owner)/(tabs)/redemptions'),
+                  accessibilityLabel: `${codes} codes issued. Open codes`,
+                },
+                {
+                  key: 'perks',
+                  value: perks.isSuccess ? activePerks : '–',
+                  label: activePerks === 1 ? 'Live perk' : 'Live perks',
+                  onPress: () => router.push('/(owner)/(tabs)/perks'),
+                  accessibilityLabel: `${activePerks} live perks. Open perks`,
+                },
+              ]}
+            />
+            {error ? (
+              <Body size={14} color={colors.danger}>
+                {error}
+              </Body>
+            ) : null}
           </View>
         }
         renderItem={({ item, index }) => (
           <ListEnter index={index}>
             <VenueRow
               venue={item}
+              taped={isWhite && index === 0}
               onEdit={() => router.push(`/(owner)/venue/${item.id}`)}
               onDelete={() => setPending(item)}
             />
           </ListEnter>
         )}
+        ListFooterComponent={
+          places.length > 0 ? (
+            <View style={{ paddingTop: 22 }}>
+              <AddTile label="Add another place" onPress={addPlace} />
+              {isWhite ? (
+                <View style={{ height: 150 }} pointerEvents="none">
+                  <Doodle kind="compass" size={54} style={{ left: 20, top: 26 }} />
+                  <Doodle kind="pin" size={40} rotate={10} style={{ right: 40, top: 46 }} />
+                  <Doodle kind="trail" size={170} style={{ left: 90, top: 66 }} />
+                </View>
+              ) : null}
+            </View>
+          ) : null
+        }
         ListEmptyComponent={
           <EmptyState
             illustration="empty-venues"
             title="Add your first place"
             detail="Guests earn points when a visit here is approved."
             action="Add your first place"
-            onPress={() => router.push('/(owner)/venue/new')}
+            onPress={addPlace}
           />
         }
       />
-      {places.length > 0 ? (
-        <AddFab onPress={() => router.push('/(owner)/venue/new')} bottom={Math.max(insets.bottom, 12) + 100} />
-      ) : null}
       <ConfirmDialog
         visible={Boolean(pending)}
         title={`Delete ${pending?.name ?? 'this place'}?`}
@@ -110,53 +152,62 @@ export function VenuesScreen() {
   );
 }
 
-function StatCard({ label, value, onPress }: { label: string; value: number | string; onPress: () => void }) {
-  return (
-    <Card onPress={onPress} className="flex-1 px-3 py-4">
-      <Text className="font-display text-title text-haunt-ink">{value}</Text>
-      <Text className="mt-1 font-sans text-caption text-haunt-mute">{label}</Text>
-    </Card>
-  );
-}
+function VenueRow({
+  venue,
+  taped,
+  onEdit,
+  onDelete,
+}: {
+  venue: OwnerVenue;
+  taped: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const { colors, surfaces, isJournal } = useSurfaces();
 
-function VenueRow({ venue, onEdit, onDelete }: { venue: OwnerVenue; onEdit: () => void; onDelete: () => void }) {
   return (
-    <View className="relative mx-6 mb-4">
-      <Card onPress={onEdit}>
-        <View className="h-[160px] justify-end">
+    <View>
+      <Card onPress={onEdit} accessibilityLabel={`${venue.name}. Edit place`}>
+        <View
+          style={{
+            height: 170,
+            borderBottomWidth: surfaces.image.borderWidth,
+            borderBottomColor: isJournal ? colors.ink : colors.line,
+          }}>
           {venue.imageUrl ? (
-            <CachedImage source={{ uri: venue.imageUrl }} style={{ height: 160, width: '100%' }} contentFit="cover" />
+            <CachedImage
+              source={{ uri: venue.imageUrl }}
+              style={{ height: '100%', width: '100%' }}
+              contentFit="cover"
+              accessibilityLabel={`Front of ${venue.name}`}
+            />
           ) : (
-            <View className="h-[160px] items-center justify-center bg-haunt-blush">
-              <Text className="font-sans-semibold text-body text-haunt-accent">{venue.category || 'Venue'}</Text>
-            </View>
+            <Placeholder style={{ flex: 1 }} radius={0} bordered={false}>
+              <Label>{venue.category || 'Your place'}</Label>
+            </Placeholder>
           )}
-          <LinearGradient
-            colors={['transparent', 'rgba(28,22,18,0.5)']}
-            style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 72 }}
-          />
         </View>
-        <View className="px-5 pb-5 pr-16 pt-4">
-          <Text className="font-display text-title text-haunt-ink">{venue.name}</Text>
-          <Text className="mt-1 font-sans text-caption text-haunt-mute">{venue.address}</Text>
-          <View className="mt-3 flex-row flex-wrap gap-2">
-            <Pill label={`${venue.radiusMeters} m`} />
-            <Pill label={`+${venue.pointsPerPhoto} photo`} />
-            <Pill label={`+${venue.pointsPerVideo} video`} />
+        <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 16, gap: 10 }}>
+          <View style={{ gap: 3 }}>
+            <H2 size={22}>{venue.name}</H2>
+            <Body size={14} color={colors.mute}>
+              {venue.address}
+            </Body>
+          </View>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: 14, rowGap: 4 }}>
+            <Mono size={12}>{`◎ ${venue.radiusMeters} m`}</Mono>
+            <Mono size={12}>{`+${venue.pointsPerPhoto} photo`}</Mono>
+            <Mono size={12}>{`+${venue.pointsPerVideo} video`}</Mono>
           </View>
         </View>
       </Card>
-      <View className="absolute right-4 top-4">
-        <ActionMenu onEdit={onEdit} onDelete={onDelete} />
-      </View>
-    </View>
-  );
-}
-
-function Pill({ label }: { label: string }) {
-  return (
-    <View className="rounded-full bg-haunt-blush px-3 py-1">
-      <Text className="font-sans-semibold text-caption text-haunt-ink">{label}</Text>
+      <ActionMenu
+        label={`${venue.name} options`}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        style={{ position: 'absolute', top: 12, right: 12 }}
+      />
+      {taped ? <Tape rotate={-3} style={{ top: -10, alignSelf: 'center' }} /> : null}
     </View>
   );
 }

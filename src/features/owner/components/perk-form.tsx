@@ -1,25 +1,25 @@
+import { Card } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
-import { hapticLight } from '@/components/ui/press';
-import { PrimaryButton } from '@/features/auth/components/primary-button';
+import { DashRule } from '@/components/ui/decor';
+import { Body, Hand, Label } from '@/components/ui/typography';
 import { TextField } from '@/features/auth/components/text-field';
+import { BigNumberInput, FormFooter } from '@/features/owner/components/form-parts';
 import { FormSection } from '@/features/owner/components/form-section';
 import { ImageField } from '@/features/owner/components/image-field';
 import { PerkPreview } from '@/features/owner/components/perk-preview';
 import { useSavePerk } from '@/features/owner/hooks';
 import { perkFormSchema, type OwnerPerk, type OwnerVenue, type PerkFormValues } from '@/features/owner/schemas';
 import { getApiErrorMessage } from '@/lib/api-error';
-import { useHauntColors } from '@/theme/colors';
+import { useSurfaces } from '@/theme/surfaces';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Gift, Percent, UtensilsCrossed } from 'lucide-react-native';
 import { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Controller, useForm, useWatch } from 'react-hook-form';
+import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 
 const types = [
-  { id: 'DISCOUNT', label: 'Discount', icon: Percent },
-  { id: 'FREE_MEAL', label: 'Free meal', icon: UtensilsCrossed },
-  { id: 'OTHER', label: 'Gift', icon: Gift },
+  { id: 'DISCOUNT', label: 'Discount' },
+  { id: 'FREE_MEAL', label: 'Free meal' },
+  { id: 'OTHER', label: 'Gift' },
 ] as const;
 
 type PerkFormProps = {
@@ -29,8 +29,7 @@ type PerkFormProps = {
 };
 
 export function PerkForm({ perk, venues, onSaved }: PerkFormProps) {
-  const insets = useSafeAreaInsets();
-  const colors = useHauntColors();
+  const { colors, isJournal } = useSurfaces();
   const save = useSavePerk(perk?.id);
   const [formError, setFormError] = useState<string | null>(null);
   const form = useForm<PerkFormValues>({
@@ -46,7 +45,11 @@ export function PerkForm({ perk, venues, onSaved }: PerkFormProps) {
       imageUrl: perk?.imageUrl ?? '',
     },
   });
-  const preview = form.watch();
+  const [title, type, pointsRequired, discountPercent, imageUrl, venueId] = useWatch({
+    control: form.control,
+    name: ['title', 'type', 'pointsRequired', 'discountPercent', 'imageUrl', 'venueId'],
+  });
+  const preview = { title, type, pointsRequired, discountPercent, imageUrl, venueId };
   const venueName = perk?.venue?.name ?? venues.find((venue) => venue.id === preview.venueId)?.name;
 
   const onSubmit = form.handleSubmit(async (values) => {
@@ -59,46 +62,56 @@ export function PerkForm({ perk, venues, onSaved }: PerkFormProps) {
   });
 
   return (
-    <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
-        className="flex-1"
+        style={{ flex: 1 }}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ gap: 16, paddingHorizontal: 24, paddingTop: 16, paddingBottom: 24 }}>
-        <PerkPreview values={preview} venueName={venueName} />
-        <FormSection title="Photo">
-          <Controller
-            control={form.control}
-            name="imageUrl"
-            render={({ field }) => <ImageField url={field.value} onChange={field.onChange} />}
-          />
-        </FormSection>
-        <FormSection title="Details">
-          {perk ? (
-            <Text className="font-sans text-body text-haunt-mute">{perk.venue?.name ?? 'This place'}</Text>
-          ) : (
-            <Controller
-              control={form.control}
-              name="venueId"
-              render={({ field, fieldState }) => (
-                <View>
-                  <Text className="mb-2 font-sans text-caption text-haunt-mute">Place</Text>
-                  <View className="flex-row flex-wrap gap-2">
-                    {venues.map((venue) => (
-                      <Chip
-                        key={venue.id}
-                        label={venue.name}
-                        selected={field.value === venue.id}
-                        onPress={() => field.onChange(venue.id)}
-                      />
-                    ))}
-                  </View>
-                  {fieldState.error ? (
-                    <Text className="mt-2 font-sans text-caption text-haunt-danger">{fieldState.error.message}</Text>
-                  ) : null}
-                </View>
-              )}
+        contentContainerStyle={{ gap: 30, paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40 }}>
+        <Controller
+          control={form.control}
+          name="imageUrl"
+          render={({ field }) => (
+            <ImageField
+              url={field.value}
+              onChange={field.onChange}
+              label="Add a photo"
+              hint="Optional. A photo of the perk helps it sell."
             />
           )}
+        />
+        <FormSection step="01" title="The perk">
+          <View style={{ gap: 8 }}>
+            <Label>For</Label>
+            {perk ? (
+              <View style={{ flexDirection: 'row' }}>
+                <Chip label={perk.venue?.name ?? 'This place'} selected />
+              </View>
+            ) : (
+              <Controller
+                control={form.control}
+                name="venueId"
+                render={({ field, fieldState }) => (
+                  <View style={{ gap: 8 }}>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                      {venues.map((venue) => (
+                        <Chip
+                          key={venue.id}
+                          label={venue.name}
+                          selected={field.value === venue.id}
+                          onPress={() => field.onChange(venue.id)}
+                        />
+                      ))}
+                    </View>
+                    {fieldState.error ? (
+                      <Body size={13} color={colors.danger}>
+                        {fieldState.error.message}
+                      </Body>
+                    ) : null}
+                  </View>
+                )}
+              />
+            )}
+          </View>
           <Controller
             control={form.control}
             name="title"
@@ -109,23 +122,9 @@ export function PerkForm({ perk, venues, onSaved }: PerkFormProps) {
                 onChangeText={field.onChange}
                 onBlur={field.onBlur}
                 error={fieldState.error?.message}
-                placeholder="Free drink"
+                placeholder="Sunset spritz"
                 autoCapitalize="sentences"
-              />
-            )}
-          />
-          <Controller
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <TextField
-                label="Details"
-                value={field.value}
-                onChangeText={field.onChange}
-                onBlur={field.onBlur}
-                placeholder="Optional"
-                autoCapitalize="sentences"
-                multiline
+                displaySize={20}
               />
             )}
           />
@@ -133,62 +132,73 @@ export function PerkForm({ perk, venues, onSaved }: PerkFormProps) {
             control={form.control}
             name="type"
             render={({ field }) => (
-              <View className="flex-row gap-2">
-                {types.map((type) => {
-                  const selected = field.value === type.id;
-                  const Icon = type.icon;
-                  return (
-                    <Pressable
+              <View style={{ gap: 8 }}>
+                <Label>Kind of perk</Label>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                  {types.map((type) => (
+                    <Chip
                       key={type.id}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected }}
-                      onPress={() => {
-                        hapticLight();
-                        field.onChange(type.id);
-                      }}
-                      className={`h-20 flex-1 items-center justify-center rounded-3xl ${selected ? 'bg-haunt-ink' : 'bg-haunt-paper'}`}>
-                      <Icon color={selected ? colors.card : colors.ink} size={20} />
-                      <Text className={`mt-1 font-sans-semibold text-caption ${selected ? 'text-haunt-card' : 'text-haunt-ink'}`}>
-                        {type.label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
+                      label={type.label}
+                      selected={field.value === type.id}
+                      onPress={() => field.onChange(type.id)}
+                    />
+                  ))}
+                </View>
               </View>
             )}
           />
-        </FormSection>
-        <FormSection title="Rewards">
           <Controller
             control={form.control}
-            name="pointsRequired"
-            render={({ field, fieldState }) => (
+            name="description"
+            render={({ field }) => (
               <TextField
-                label="Points required"
-                value={String(field.value)}
-                keyboardType="number-pad"
-                onChangeText={(text) => field.onChange(Number(text.replace(/\D/g, '')) || 0)}
+                label="The details"
+                value={field.value}
+                onChangeText={field.onChange}
                 onBlur={field.onBlur}
-                error={fieldState.error?.message}
+                placeholder="Optional. Anything guests should know."
+                autoCapitalize="sentences"
+                multiline
               />
             )}
           />
-          {preview.type === 'DISCOUNT' ? (
+        </FormSection>
+        <FormSection step="02" title="What it costs" gap={14}>
+          <Card style={{ flexDirection: 'row' }}>
             <Controller
               control={form.control}
-              name="discountPercent"
+              name="pointsRequired"
               render={({ field, fieldState }) => (
-                <TextField
-                  label="Discount percent"
-                  value={String(field.value)}
-                  keyboardType="number-pad"
-                  onChangeText={(text) => field.onChange(Number(text.replace(/\D/g, '')) || 0)}
+                <BigNumberInput
+                  label="Points"
+                  value={field.value}
+                  onChange={field.onChange}
                   onBlur={field.onBlur}
                   error={fieldState.error?.message}
                 />
               )}
             />
-          ) : null}
+            {preview.type === 'DISCOUNT' ? (
+              <>
+                <DashRule vertical color={colors.lineStrong} width={isJournal ? 1.5 : 1} />
+                <Controller
+                  control={form.control}
+                  name="discountPercent"
+                  render={({ field, fieldState }) => (
+                    <BigNumberInput
+                      label="Discount"
+                      unit="%"
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      error={fieldState.error?.message}
+                    />
+                  )}
+                />
+              </>
+            ) : null}
+          </Card>
+          <Hand>a cheap first perk gets people coming back</Hand>
           <Controller
             control={form.control}
             name="promoCodePrefix"
@@ -200,15 +210,22 @@ export function PerkForm({ perk, venues, onSaved }: PerkFormProps) {
                 onBlur={field.onBlur}
                 placeholder="Optional, like BAR"
                 autoCapitalize="characters"
+                mono
               />
             )}
           />
         </FormSection>
+        <View style={{ gap: 10 }}>
+          <Label>Guests will see</Label>
+          <PerkPreview values={preview} venueName={venueName} />
+        </View>
       </ScrollView>
-      <View className="bg-haunt-paper px-6 pt-4" style={{ paddingBottom: Math.max(insets.bottom, 16) }}>
-        {formError ? <Text className="mb-3 font-sans text-caption text-haunt-danger">{formError}</Text> : null}
-        <PrimaryButton label={perk ? 'Save perk' : 'Create perk'} onPress={() => void onSubmit()} loading={save.isPending} />
-      </View>
+      <FormFooter
+        label={perk ? 'Save perk' : 'Add perk'}
+        onPress={() => void onSubmit()}
+        loading={save.isPending}
+        error={formError}
+      />
     </KeyboardAvoidingView>
   );
 }
