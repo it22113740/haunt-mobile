@@ -42,7 +42,7 @@ export function PerkEditScreen({ perkId }: PerkEditScreenProps) {
   }
 
   return (
-    <ScreenEnter className="flex-1 bg-haunt-paper">
+    <ScreenEnter className="flex-1 bg-hunt-paper">
       <FormHeader title={perk ? 'Edit perk' : 'New perk'} />
       <PerkForm perk={perk} venues={venues.data ?? []} onSaved={() => router.back()} />
     </ScreenEnter>

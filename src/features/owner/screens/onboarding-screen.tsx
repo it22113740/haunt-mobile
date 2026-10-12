@@ -67,7 +67,7 @@ export function OnboardingScreen() {
 
   if (screen === 'welcome') {
     return (
-      <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top + 18 }}>
+      <ScreenEnter className="flex-1 bg-hunt-paper" style={{ paddingTop: insets.top + 18 }}>
         <SetupWelcome done={[hasVenue, hasPerk, false]} onStart={() => setScreen('place')} />
       </ScreenEnter>
     );
@@ -75,7 +75,7 @@ export function OnboardingScreen() {
 
   if (screen === 'done') {
     return (
-      <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top }}>
+      <ScreenEnter className="flex-1 bg-hunt-paper" style={{ paddingTop: insets.top }}>
         <SetupFinish onDone={openTabs} loading={setStep.isPending} />
       </ScreenEnter>
     );
@@ -84,7 +84,7 @@ export function OnboardingScreen() {
   const place = screen === 'place';
 
   return (
-    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top + 18 }}>
+    <ScreenEnter className="flex-1 bg-hunt-paper" style={{ paddingTop: insets.top + 18 }}>
       <View style={{ paddingHorizontal: 20, gap: 10 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 }}>
           <Label color={colors.accentDeep}>{place ? 'Step 1 of 2' : 'Step 2 of 2'}</Label>

@@ -1,6 +1,6 @@
 import { MapPin, sketchStyle } from '@/features/venues/components/map-style';
 import { distanceMeters, type Venue } from '@/features/venues/schemas';
-import { useHauntColors, type HauntColors } from '@/theme/colors';
+import { useHuntColors, type HuntColors } from '@/theme/colors';
 import { useEffect, useState } from 'react';
 import { Platform, Text, View } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
@@ -17,7 +17,7 @@ const LABEL_WIDTH = 120;
 const PIN_WIDTH = 30;
 
 export function VenueMap({ venues, latitude, longitude, onSelect, height = 210 }: VenueMapProps) {
-  const colors = useHauntColors();
+  const colors = useHuntColors();
   const user = latitude !== undefined && longitude !== undefined ? { lat: latitude, lng: longitude } : null;
   const nearest = user
     ? venues.reduce<Venue | undefined>(
@@ -97,7 +97,7 @@ function VenueMarker({
 }: {
   venue: Venue;
   primary: boolean;
-  colors: HauntColors;
+  colors: HuntColors;
   onPress: () => void;
 }) {
   // Android snapshots custom marker views; keep tracking briefly so the label font has rendered first.

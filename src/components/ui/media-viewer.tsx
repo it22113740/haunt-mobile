@@ -3,7 +3,7 @@ import { MotionView } from '@/components/ui/animated';
 import { CachedImage } from '@/components/cached-image';
 import { Tape } from '@/components/ui/decor';
 import { Mono } from '@/components/ui/typography';
-import { useHauntTheme } from '@/theme/colors';
+import { useHuntTheme } from '@/theme/colors';
 import { StatusBar } from 'expo-status-bar';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { X } from 'lucide-react-native';
@@ -25,7 +25,7 @@ type MediaViewerProps = {
 
 export function MediaViewer({ url, kind, onClose, counter = '1 of 1', footer }: MediaViewerProps) {
   const insets = useSafeAreaInsets();
-  const { colors, isWhite } = useHauntTheme();
+  const { colors, isWhite } = useHuntTheme();
   const translateY = useSharedValue(0);
   const visible = Boolean(url && kind);
 

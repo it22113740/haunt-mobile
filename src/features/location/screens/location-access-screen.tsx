@@ -38,14 +38,14 @@ export function LocationAccessScreen() {
     setMessage(null);
     try {
       if (Platform.OS === 'web') {
-        setMessage('On a phone, Haunt shows the system prompt here, then continues to background access.');
+        setMessage('On a phone, Hunt shows the system prompt here, then continues to background access.');
         setStep('background');
         return;
       }
       const permission = await Location.requestForegroundPermissionsAsync();
       if (!permission.granted) {
         hapticWarning();
-        setMessage('Location stays off while you use Haunt until you allow it. Background access comes after that.');
+        setMessage('Location stays off while you use Hunt until you allow it. Background access comes after that.');
         return;
       }
       setStep('background');
@@ -66,7 +66,7 @@ export function LocationAccessScreen() {
       if (!foreground.granted) {
         hapticWarning();
         setStep('foreground');
-        setMessage('Allow location while using Haunt before background access.');
+        setMessage('Allow location while using Hunt before background access.');
         return;
       }
       const permission = await Location.requestBackgroundPermissionsAsync();
@@ -88,16 +88,16 @@ export function LocationAccessScreen() {
   };
 
   const title =
-    step === 'foreground' ? 'While Haunt is open' : step === 'background' ? 'When Haunt is closed' : 'Arrival alerts are on';
+    step === 'foreground' ? 'While Hunt is open' : step === 'background' ? 'When Hunt is closed' : 'Arrival alerts are on';
   const body =
     step === 'foreground'
-      ? 'Haunt uses your location to show restaurants and bars around you, and to know when you are standing at one. This first prompt is only for while the app is open.'
+      ? 'Hunt uses your location to show restaurants and bars around you, and to know when you are standing at one. This first prompt is only for while the app is open.'
       : step === 'background'
-        ? 'The next prompt lets Haunt notice you arrived even if the app is closed. Each update sends your current latitude and longitude so Haunt can check the places you are inside. You can turn this off in system settings.'
-        : 'Haunt will check your location in the background and send an arrival note when you are inside a place.';
+        ? 'The next prompt lets Hunt notice you arrived even if the app is closed. Each update sends your current latitude and longitude so Hunt can check the places you are inside. You can turn this off in system settings.'
+        : 'Hunt will check your location in the background and send an arrival note when you are inside a place.';
 
   return (
-    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top + 18 }}>
+    <ScreenEnter className="flex-1 bg-hunt-paper" style={{ paddingTop: insets.top + 18 }}>
       <View style={{ paddingHorizontal: 20 }}>
         <BackButton />
       </View>

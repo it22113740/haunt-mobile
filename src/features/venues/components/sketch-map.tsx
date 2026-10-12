@@ -1,9 +1,9 @@
-import { useHauntColors } from '@/theme/colors';
+import { useHuntColors } from '@/theme/colors';
 import Svg, { Circle, G, Path, Text as SvgText } from 'react-native-svg';
 
 /** Hand-drawn map illustration used where a live map is unavailable (web). */
 export function SketchMap({ height = 210, primary, secondary }: { height?: number; primary?: string; secondary?: string }) {
-  const colors = useHauntColors();
+  const colors = useHuntColors();
   return (
     <Svg
       viewBox="0 0 350 210"

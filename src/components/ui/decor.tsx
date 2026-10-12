@@ -1,7 +1,7 @@
 import { useId, type ReactNode } from 'react';
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import Svg, { Circle, Defs, Line, Path, Pattern, Polygon, Rect } from 'react-native-svg';
-import { useHauntTheme } from '@/theme/colors';
+import { useHuntTheme } from '@/theme/colors';
 
 type DoodleShape = {
   box: [number, number];
@@ -95,7 +95,7 @@ export type DoodleProps = {
 
 /** Hand-drawn margin doodle. Purely decorative: never intercepts touches or screen readers. */
 export function Doodle({ kind, size, accent = false, rotate = 0, style }: DoodleProps) {
-  const { colors } = useHauntTheme();
+  const { colors } = useHuntTheme();
   const shape: DoodleShape = DOODLES[kind];
   const [w, h] = shape.box;
   const stroke = accent ? colors.accent : colors.doodle;
@@ -148,7 +148,7 @@ export function Tape({
   rotate?: number;
   style?: StyleProp<ViewStyle>;
 }) {
-  const { colors, isJournal } = useHauntTheme();
+  const { colors, isJournal } = useHuntTheme();
   const width = isJournal ? 84 : 78;
   const height = isJournal ? 24 : 22;
   const points = TAPE_EDGE.map(([x, y]) => `${(x / 100) * width},${(y / 100) * height}`).join(' ');
@@ -171,7 +171,7 @@ function useSvgId(prefix: string) {
 
 /** Ruler-style progress bar with a tick every 10pt. */
 export function Ticks({ progress, style }: { progress: number; style?: StyleProp<ViewStyle> }) {
-  const { colors } = useHauntTheme();
+  const { colors } = useHuntTheme();
   const base = useSvgId('tb');
   const fill = useSvgId('tf');
   const percent = `${Math.round(Math.min(1, Math.max(0, progress)) * 1000) / 10}%`;
@@ -220,7 +220,7 @@ export function Placeholder({
   radius?: number;
   bordered?: boolean;
 }) {
-  const { colors, isJournal } = useHauntTheme();
+  const { colors, isJournal } = useHuntTheme();
   const stripes = useSvgId('ph');
   return (
     <View
@@ -257,7 +257,7 @@ export function Placeholder({
 
 /** Journal paper dot grid. Renders nothing in the white style. */
 export function DotGrid() {
-  const { colors, isJournal } = useHauntTheme();
+  const { colors, isJournal } = useHuntTheme();
   const dots = useSvgId('dg');
   if (!isJournal) return null;
   return (
@@ -291,7 +291,7 @@ export function Stamp({
   background?: string;
   style?: StyleProp<ViewStyle>;
 }) {
-  const { colors } = useHauntTheme();
+  const { colors } = useHuntTheme();
   const color = colorOverride ?? { ok: colors.good, no: colors.danger, wait: colors.accentDeep, used: colors.mute }[tone];
   return (
     <View
@@ -323,7 +323,7 @@ export function Stamp({
 }
 
 export function Rule({ style }: { style?: StyleProp<ViewStyle> }) {
-  const { colors } = useHauntTheme();
+  const { colors } = useHuntTheme();
   return <View style={[{ height: 1, backgroundColor: colors.line }, style]} />;
 }
 
@@ -341,7 +341,7 @@ export function DashRule({
   dash?: string;
   style?: StyleProp<ViewStyle>;
 }) {
-  const { colors } = useHauntTheme();
+  const { colors } = useHuntTheme();
   const stroke = color ?? colors.lineStrong;
   return (
     <View

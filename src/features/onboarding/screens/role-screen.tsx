@@ -50,7 +50,7 @@ export function RoleScreen() {
 
   return (
     <ScreenEnter
-      className="flex-1 bg-haunt-paper"
+      className="flex-1 bg-hunt-paper"
       style={{
         justifyContent: 'space-between',
         paddingHorizontal: 20,
@@ -62,7 +62,7 @@ export function RoleScreen() {
         <Doodle kind="sparkle" size={10} style={{ right: 30, top: 24 }} />
         <View style={{ gap: 10 }}>
           <Label>Welcome</Label>
-          <MarkedHeading before="How will you use " mark="Haunt" after="?" />
+          <MarkedHeading before="How will you use " mark="Hunt" after="?" />
           <Sub>You can switch later by creating the other kind of account.</Sub>
         </View>
         <View accessibilityRole="radiogroup" style={{ marginTop: 28, gap: 14 }}>

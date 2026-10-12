@@ -17,7 +17,7 @@ export function ScreenState({ title, detail, action, onPress, loading, skeleton 
   if (loading) return <SkeletonScreen label={title} shape={skeleton} />;
 
   return (
-    <ScreenEnter className="flex-1 items-center justify-center bg-haunt-paper">
+    <ScreenEnter className="flex-1 items-center justify-center bg-hunt-paper">
       <EmptyState title={title} detail={detail} action={action} onPress={onPress} />
       {children}
     </ScreenEnter>

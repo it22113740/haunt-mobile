@@ -26,7 +26,7 @@ export function VenueEditScreen({ venueId }: VenueEditScreenProps) {
   }
 
   return (
-    <ScreenEnter className="flex-1 bg-haunt-paper">
+    <ScreenEnter className="flex-1 bg-hunt-paper">
       <FormHeader title={venue ? 'Edit place' : 'New place'} />
       <VenueForm venue={venue} origin={location.data} onSaved={() => router.back()} />
     </ScreenEnter>

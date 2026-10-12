@@ -1,11 +1,11 @@
 import { vars } from 'nativewind';
 import { useColorScheme } from 'react-native';
-import { hauntTokens, type HauntVariant } from '@/theme/tokens';
+import { huntTokens, type HuntVariant } from '@/theme/tokens';
 
-export type HauntColors = { [Key in keyof typeof hauntTokens.journal]: string };
+export type HuntColors = { [Key in keyof typeof huntTokens.journal]: string };
 
-export const hauntJournal: HauntColors = hauntTokens.journal;
-export const hauntWhite: HauntColors = hauntTokens.white;
+export const huntJournal: HuntColors = huntTokens.journal;
+export const huntWhite: HuntColors = huntTokens.white;
 
 function channels(hex: string) {
   const value = hex.replace('#', '');
@@ -15,43 +15,43 @@ function channels(hex: string) {
   return `${red} ${green} ${blue}`;
 }
 
-export function hauntCssVariables(colors: HauntColors) {
+export function huntCssVariables(colors: HuntColors) {
   return {
-    '--haunt-paper': channels(colors.paper),
-    '--haunt-ink': channels(colors.ink),
-    '--haunt-mute': channels(colors.mute),
-    '--haunt-faint': channels(colors.faint),
-    '--haunt-line': channels(colors.line),
-    '--haunt-line-strong': channels(colors.lineStrong),
-    '--haunt-card': channels(colors.card),
-    '--haunt-accent': channels(colors.accent),
-    '--haunt-accent-deep': channels(colors.accentDeep),
-    '--haunt-gold': channels(colors.gold),
-    '--haunt-blush': channels(colors.blush),
-    '--haunt-danger': channels(colors.danger),
-    '--haunt-danger-soft': channels(colors.dangerSoft),
-    '--haunt-good': channels(colors.good),
-    '--haunt-good-soft': channels(colors.goodSoft),
-    '--haunt-on-accent': channels(colors.onAccent),
-    '--haunt-placeholder': channels(colors.placeholder),
+    '--hunt-paper': channels(colors.paper),
+    '--hunt-ink': channels(colors.ink),
+    '--hunt-mute': channels(colors.mute),
+    '--hunt-faint': channels(colors.faint),
+    '--hunt-line': channels(colors.line),
+    '--hunt-line-strong': channels(colors.lineStrong),
+    '--hunt-card': channels(colors.card),
+    '--hunt-accent': channels(colors.accent),
+    '--hunt-accent-deep': channels(colors.accentDeep),
+    '--hunt-gold': channels(colors.gold),
+    '--hunt-blush': channels(colors.blush),
+    '--hunt-danger': channels(colors.danger),
+    '--hunt-danger-soft': channels(colors.dangerSoft),
+    '--hunt-good': channels(colors.good),
+    '--hunt-good-soft': channels(colors.goodSoft),
+    '--hunt-on-accent': channels(colors.onAccent),
+    '--hunt-placeholder': channels(colors.placeholder),
   };
 }
 
-export function useHauntVariant(): HauntVariant {
+export function useHuntVariant(): HuntVariant {
   return useColorScheme() === 'dark' ? 'journal' : 'white';
 }
 
-export function useHauntColors() {
-  return useHauntVariant() === 'journal' ? hauntJournal : hauntWhite;
+export function useHuntColors() {
+  return useHuntVariant() === 'journal' ? huntJournal : huntWhite;
 }
 
-export function useHauntTheme() {
-  const variant = useHauntVariant();
-  const colors = variant === 'journal' ? hauntJournal : hauntWhite;
+export function useHuntTheme() {
+  const variant = useHuntVariant();
+  const colors = variant === 'journal' ? huntJournal : huntWhite;
   return { variant, colors, isJournal: variant === 'journal', isWhite: variant === 'white' };
 }
 
-export function useHauntVars() {
-  const colors = useHauntColors();
-  return vars(hauntCssVariables(colors));
+export function useHuntVars() {
+  const colors = useHuntColors();
+  return vars(huntCssVariables(colors));
 }

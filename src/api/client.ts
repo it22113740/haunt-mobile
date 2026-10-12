@@ -1,11 +1,14 @@
-import axios, {
+import {
+  create,
   isAxiosError,
   type AxiosError,
   type AxiosRequestConfig,
 } from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-const TOKEN_KEY = 'haunt.accessToken';
+const TOKEN_KEY = 'hunt.accessToken';
+/** Key used before the rename to Hunt; read once so existing sessions survive the update. */
+const LEGACY_TOKEN_KEY = 'haunt.accessToken';
 
 let memoryToken: string | null = null;
 let onUnauthorized: (() => Promise<void>) | null = null;
@@ -26,7 +29,13 @@ async function secureStoreAvailable(): Promise<boolean> {
 export async function readAccessToken(): Promise<string | null> {
   if (memoryToken) return memoryToken;
   if (!(await secureStoreAvailable())) return null;
-  return SecureStore.getItemAsync(TOKEN_KEY);
+  const token = await SecureStore.getItemAsync(TOKEN_KEY);
+  if (token) return token;
+  const legacy = await SecureStore.getItemAsync(LEGACY_TOKEN_KEY);
+  if (!legacy) return null;
+  await SecureStore.setItemAsync(TOKEN_KEY, legacy);
+  await SecureStore.deleteItemAsync(LEGACY_TOKEN_KEY).catch(() => undefined);
+  return legacy;
 }
 
 export async function writeAccessToken(token: string): Promise<void> {
@@ -40,6 +49,7 @@ export async function clearAccessToken(): Promise<void> {
   if (!(await secureStoreAvailable())) return;
   try {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await SecureStore.deleteItemAsync(LEGACY_TOKEN_KEY);
   } catch {
     // The key is already gone.
   }
@@ -57,7 +67,7 @@ function requestUsedBearerToken(error: AxiosError): boolean {
   return typeof value === 'string' && value.startsWith('Bearer ');
 }
 
-export const api = axios.create({
+export const api = create({
   baseURL: process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, ''),
 });
 

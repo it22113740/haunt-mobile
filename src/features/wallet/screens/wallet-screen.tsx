@@ -69,7 +69,7 @@ export function WalletScreen() {
   );
 
   return (
-    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top }}>
+    <ScreenEnter className="flex-1 bg-hunt-paper" style={{ paddingTop: insets.top }}>
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 22, paddingBottom: tabInset, gap: 24 }}
         refreshControl={refreshControl}>

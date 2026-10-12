@@ -3,7 +3,7 @@ import { Avatar } from '@/components/ui/avatar';
 import { BackButton } from '@/components/ui/icon-button';
 import { H1, H2, Label, MarkedHeading, Sub, Wordmark } from '@/components/ui/typography';
 import { useAuthStore } from '@/stores/auth';
-import { useHauntTheme } from '@/theme/colors';
+import { useHuntTheme } from '@/theme/colors';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
@@ -37,7 +37,7 @@ type AppHeaderProps = {
 };
 
 export function AppHeader({ title, markTitle = false, tag, right }: AppHeaderProps) {
-  const { isWhite } = useHauntTheme();
+  const { isWhite } = useHuntTheme();
   const trailing = right === undefined ? <ProfileAvatarButton /> : right;
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 }}>
@@ -82,7 +82,7 @@ type ScreenHeaderProps = {
 
 /** Page title (h1 28) with an optional muted subtitle. */
 export function ScreenHeader({ title, subtitle, right, markTitle = false }: ScreenHeaderProps) {
-  const { isWhite } = useHauntTheme();
+  const { isWhite } = useHuntTheme();
   return (
     <View style={{ gap: 8 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>

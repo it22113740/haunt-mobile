@@ -36,7 +36,7 @@ export function CustomerPromotionsScreen() {
   }
 
   return (
-    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top }}>
+    <ScreenEnter className="flex-1 bg-hunt-paper" style={{ paddingTop: insets.top }}>
       <FlatList
         style={{ flex: 1 }}
         data={rows}

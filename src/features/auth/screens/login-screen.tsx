@@ -38,7 +38,7 @@ export function LoginScreen() {
     <AuthScaffold
       illustration="onb-discover"
       title="Welcome back"
-      subtitle="Sign in to pick up rewards at the places you haunt."
+      subtitle="Sign in to pick up rewards at the places you hunt."
       footer={
         <>
           <FormError message={formError} />

@@ -11,13 +11,13 @@ if (!apiUrl) {
 }
 
 export default defineConfig({
-  haunt: {
+  hunt: {
     input: {
       target: `${apiUrl}/api-json`,
     },
     output: {
       mode: 'tags-split',
-      target: './src/api/generated/haunt.ts',
+      target: './src/api/generated/hunt.ts',
       schemas: './src/api/generated/model',
       client: 'react-query',
       httpClient: 'axios',

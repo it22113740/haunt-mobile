@@ -75,7 +75,7 @@ export function VenueDetailScreen({ venueId }: VenueDetailScreenProps) {
   const strong = isJournal ? { width: 1.5, color: colors.ink } : { width: 1, color: colors.line };
 
   return (
-    <ScreenEnter className="flex-1 bg-haunt-paper">
+    <ScreenEnter className="flex-1 bg-hunt-paper">
       <ScrollView
         style={{ flexGrow: 1, flexShrink: 1, minHeight: 0 }}
         contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}

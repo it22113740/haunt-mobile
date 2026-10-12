@@ -1,4 +1,4 @@
-import { useHauntColors } from '@/theme/colors';
+import { useHuntColors } from '@/theme/colors';
 import { RefreshControl } from 'react-native';
 
 type RefreshableQuery = {
@@ -8,7 +8,7 @@ type RefreshableQuery = {
 };
 
 export function useListRefresh(queries: RefreshableQuery[]) {
-  const colors = useHauntColors();
+  const colors = useHuntColors();
   const refreshing = queries.some((query) => query.isRefetching && !query.isPending);
 
   return (

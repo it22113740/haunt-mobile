@@ -4,7 +4,7 @@ import { Doodle } from '@/components/ui/decor';
 import { ScreenEnter } from '@/components/ui/enter';
 import { useTabBarInset } from '@/components/ui/tab-bar';
 import { H1, Hand, Sub } from '@/components/ui/typography';
-import { useHauntColors } from '@/theme/colors';
+import { useHuntColors } from '@/theme/colors';
 import { useEffect } from 'react';
 import { View } from 'react-native';
 import { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -18,7 +18,7 @@ type CaptureSuccessProps = {
 };
 
 export function CaptureSuccess({ points, onActivity, onAgain }: CaptureSuccessProps) {
-  const colors = useHauntColors();
+  const colors = useHuntColors();
   const insets = useSafeAreaInsets();
   const tabInset = useTabBarInset();
   const scale = useSharedValue(0.86);
@@ -32,7 +32,7 @@ export function CaptureSuccess({ points, onActivity, onAgain }: CaptureSuccessPr
 
   return (
     <ScreenEnter
-      className="flex-1 bg-haunt-paper"
+      className="flex-1 bg-hunt-paper"
       style={{ paddingTop: insets.top + 22, paddingBottom: tabInset, paddingHorizontal: 20 }}>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 }}>
         <MotionView style={[{ width: 140, height: 110, alignItems: 'center', justifyContent: 'center' }, art]}>

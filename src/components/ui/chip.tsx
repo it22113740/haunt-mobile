@@ -1,5 +1,5 @@
 import { PressScale } from '@/components/ui/press-scale';
-import { useHauntTheme } from '@/theme/colors';
+import { useHuntTheme } from '@/theme/colors';
 import type { LucideIcon } from 'lucide-react-native';
 import { Text } from 'react-native';
 
@@ -24,7 +24,7 @@ export function Chip({
   strong = false,
   accessibilityLabel,
 }: ChipProps) {
-  const { colors } = useHauntTheme();
+  const { colors } = useHuntTheme();
   const fg = selected ? colors.paper : colors.ink;
   return (
     <PressScale

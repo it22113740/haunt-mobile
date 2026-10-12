@@ -1,4 +1,4 @@
-import { useHauntColors } from '@/theme/colors';
+import { useHuntColors } from '@/theme/colors';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo } from 'react';
 import { Circle, MapContainer, Marker, TileLayer, useMap } from 'react-leaflet';
@@ -20,7 +20,7 @@ function FollowPin({ lat, lng }: { lat: number; lng: number }) {
 }
 
 export function LeafletMap({ lat, lng, radiusMeters, onChange }: LeafletMapProps) {
-  const colors = useHauntColors();
+  const colors = useHuntColors();
   const icon = useMemo(
     () =>
       L.divIcon({

@@ -19,7 +19,7 @@ import {
 import { useSubmitVisit } from '@/features/capture/hooks';
 import { useExploreVenues, useUserLocation } from '@/features/venues/hooks';
 import { getApiErrorMessage } from '@/lib/api-error';
-import { useHauntColors } from '@/theme/colors';
+import { useHuntColors } from '@/theme/colors';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -30,7 +30,7 @@ export function CaptureScreen() {
   const insets = useSafeAreaInsets();
   const tabInset = useTabBarInset();
   const router = useRouter();
-  const colors = useHauntColors();
+  const colors = useHuntColors();
   const explore = useExploreVenues(true);
   const location = useUserLocation();
   const submit = useSubmitVisit();
@@ -146,7 +146,7 @@ export function CaptureScreen() {
   const quiet = files.length === 0 && progress === null && !error;
 
   return (
-    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top }}>
+    <ScreenEnter className="flex-1 bg-hunt-paper" style={{ paddingTop: insets.top }}>
       {quiet ? (
         <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, bottom: footerBottom }}>
           <Doodle kind="trail" size={180} style={{ left: 28, bottom: 48 }} />
@@ -165,7 +165,7 @@ export function CaptureScreen() {
         <View style={{ gap: 12 }}>
           <StepTitle step="01" title="Where are you?" />
           {explore.venues.length === 0 ? (
-            <Sub>No places on Haunt yet. Check back once a venue joins.</Sub>
+            <Sub>No places on Hunt yet. Check back once a venue joins.</Sub>
           ) : (
             <VenueStrip
               venues={explore.venues}

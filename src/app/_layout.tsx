@@ -3,13 +3,14 @@ import '@/global.css';
 import '@/features/location/geofence-task';
 
 import { queryClient } from '@/api/query-client';
+import { LaunchSplash } from '@/components/launch-splash';
 import { ToastHost } from '@/components/toast';
 import { useDeviceServices } from '@/features/notifications/hooks';
 import { loadNotifications } from '@/features/notifications/push';
 import { useAuthRedirect } from '@/hooks/use-auth-redirect';
 import { useLaunchFlags } from '@/lib/launch-flags';
 import { useAuthStore } from '@/stores/auth';
-import { hauntCssVariables, useHauntColors, useHauntVars } from '@/theme/colors';
+import { huntCssVariables, useHuntColors, useHuntVars } from '@/theme/colors';
 import {
   BricolageGrotesque_400Regular,
   BricolageGrotesque_500Medium,
@@ -42,8 +43,8 @@ if (Platform.OS === 'android') {
 }
 
 export default function RootLayout() {
-  const colors = useHauntColors();
-  const themeVars = useHauntVars();
+  const colors = useHuntColors();
+  const themeVars = useHuntVars();
   const hydrate = useAuthStore((state) => state.hydrate);
   const loadFlags = useLaunchFlags((state) => state.load);
   const [sessionReady, setSessionReady] = useState(false);
@@ -80,15 +81,15 @@ export default function RootLayout() {
     void Promise.all([hydrate(), loadFlags()]).finally(() => setSessionReady(true));
   }, [hydrate, loadFlags]);
 
+  const appReady = Boolean(fontsLoaded || fontError) && sessionReady;
+
   useEffect(() => {
-    if ((fontsLoaded || fontError) && sessionReady) {
-      void SplashScreen.hideAsync();
-    }
-  }, [fontError, fontsLoaded, sessionReady]);
+    void SplashScreen.hideAsync();
+  }, []);
 
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof document === 'undefined') return;
-    const variables = hauntCssVariables(colors);
+    const variables = huntCssVariables(colors);
     for (const [name, value] of Object.entries(variables)) {
       document.documentElement.style.setProperty(name, value);
     }
@@ -103,6 +104,7 @@ export default function RootLayout() {
           <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }} />
           <ToastHost />
         </ThemeProvider>
+        <LaunchSplash ready={appReady} />
       </View>
     </QueryClientProvider>
   );

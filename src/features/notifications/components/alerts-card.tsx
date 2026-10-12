@@ -84,7 +84,7 @@ export function AlertsCard({ role, pushToken }: AlertsCardProps) {
       {role === 'USER' ? (
         <NudgeRow
           title="Arrival alerts"
-          body="Haunt notices when you walk into a place and reminds you to capture it. Uses your location in the background."
+          body="Hunt notices when you walk into a place and reminds you to capture it. Uses your location in the background."
           value={arrivalOn}
           onChange={(next) => {
             if (next) router.push('/(user)/location');

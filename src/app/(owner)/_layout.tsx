@@ -1,4 +1,4 @@
-import { useHauntColors } from '@/theme/colors';
+import { useHuntColors } from '@/theme/colors';
 import { Stack } from 'expo-router';
 
 export const unstable_settings = {
@@ -6,7 +6,7 @@ export const unstable_settings = {
 };
 
 export default function OwnerLayout() {
-  const colors = useHauntColors();
+  const colors = useHuntColors();
 
   return (
     <Stack

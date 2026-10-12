@@ -1,12 +1,12 @@
 import { PinPickerFrame, type PinPickerProps } from '@/features/owner/components/pin-picker-frame';
 import { MapPin, sketchStyle } from '@/features/venues/components/map-style';
-import { useHauntColors } from '@/theme/colors';
+import { useHuntColors } from '@/theme/colors';
 import { Platform } from 'react-native';
 import MapView, { Circle, Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 
 export function PinPicker({ lat, lng, radiusMeters, onChange }: PinPickerProps) {
   const delta = Math.max((radiusMeters / 111000) * 6, 0.01);
-  const colors = useHauntColors();
+  const colors = useHuntColors();
 
   return (
     <PinPickerFrame lat={lat} lng={lng} onChange={onChange}>

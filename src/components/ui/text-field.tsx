@@ -1,5 +1,5 @@
 import { Label } from '@/components/ui/typography';
-import { useHauntTheme } from '@/theme/colors';
+import { useHuntTheme } from '@/theme/colors';
 import { Eye, EyeOff } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { useId, useState } from 'react';
@@ -59,7 +59,7 @@ export function TextField({
 }: TextFieldProps) {
   const [focused, setFocused] = useState(false);
   const [hidden, setHidden] = useState(Boolean(secure));
-  const { colors, isJournal } = useHauntTheme();
+  const { colors, isJournal } = useHuntTheme();
   const ruleId = `rl${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
 
   const restLine = isJournal ? colors.ink : colors.lineStrong;

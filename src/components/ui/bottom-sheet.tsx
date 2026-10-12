@@ -1,4 +1,4 @@
-import { useHauntTheme } from '@/theme/colors';
+import { useHuntTheme } from '@/theme/colors';
 import type { ReactNode } from 'react';
 import { Modal, Pressable, View } from 'react-native';
 import Animated, { SlideInDown } from 'react-native-reanimated';
@@ -13,7 +13,7 @@ type BottomSheetProps = {
 
 export function BottomSheet({ visible, onClose, children, accessibilityLabel }: BottomSheetProps) {
   const insets = useSafeAreaInsets();
-  const { colors, isJournal } = useHauntTheme();
+  const { colors, isJournal } = useHuntTheme();
 
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>

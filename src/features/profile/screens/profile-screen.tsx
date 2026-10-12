@@ -35,7 +35,7 @@ export function ProfileScreen() {
   };
 
   return (
-    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top }}>
+    <ScreenEnter className="flex-1 bg-hunt-paper" style={{ paddingTop: insets.top }}>
       {profile.data ? null : (
         <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 6 }}>
           <BackHeader label="Profile" />

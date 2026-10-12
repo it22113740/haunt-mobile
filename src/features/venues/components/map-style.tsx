@@ -1,4 +1,4 @@
-import type { HauntColors } from '@/theme/colors';
+import type { HuntColors } from '@/theme/colors';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 type MapStyleRule = {
@@ -8,7 +8,7 @@ type MapStyleRule = {
 };
 
 /** Google Maps (Android) styling that mirrors the sketch-map palette. Apple Maps uses `mutedStandard`. */
-export function sketchStyle(colors: HauntColors): MapStyleRule[] {
+export function sketchStyle(colors: HuntColors): MapStyleRule[] {
   return [
     { elementType: 'geometry', stylers: [{ color: colors.mapBg }] },
     { elementType: 'labels', stylers: [{ visibility: 'off' }] },
@@ -26,7 +26,7 @@ export function sketchStyle(colors: HauntColors): MapStyleRule[] {
 }
 
 /** Orange teardrop pin; anchor it at the bottom centre (`{ x: 0.5, y: 1 }`). */
-export function MapPin({ colors, size = 30 }: { colors: HauntColors; size?: number }) {
+export function MapPin({ colors, size = 30 }: { colors: HuntColors; size?: number }) {
   return (
     <Svg width={size} height={(size * 4) / 3} viewBox="-15 -38 30 40">
       <Path

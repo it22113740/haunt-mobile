@@ -85,7 +85,7 @@ export function ActivityScreen() {
   }
 
   return (
-    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top }}>
+    <ScreenEnter className="flex-1 bg-hunt-paper" style={{ paddingTop: insets.top }}>
       <SectionList
         sections={sections}
         keyExtractor={(item) => item.id}

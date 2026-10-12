@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Text, View, type StyleProp, type TextProps, type TextStyle, type ViewStyle } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { useHauntColors } from '@/theme/colors';
+import { useHuntColors } from '@/theme/colors';
 
 type TextKitProps = Omit<TextProps, 'style'> & {
   children?: ReactNode;
@@ -12,7 +12,7 @@ type TextKitProps = Omit<TextProps, 'style'> & {
 
 /** Mono, uppercase, tracked: section labels and small captions. */
 export function Label({ children, color, size = 11, style, ...rest }: TextKitProps) {
-  const colors = useHauntColors();
+  const colors = useHuntColors();
   return (
     <Text
       {...rest}
@@ -33,7 +33,7 @@ export function Label({ children, color, size = 11, style, ...rest }: TextKitPro
 
 /** Handwritten Caveat note in orange ink. */
 export function Hand({ children, color, size = 20, style, ...rest }: TextKitProps) {
-  const colors = useHauntColors();
+  const colors = useHuntColors();
   return (
     <Text
       {...rest}
@@ -52,7 +52,7 @@ export function Hand({ children, color, size = 20, style, ...rest }: TextKitProp
 }
 
 export function H1({ children, color, size = 32, style, ...rest }: TextKitProps) {
-  const colors = useHauntColors();
+  const colors = useHuntColors();
   return (
     <Text
       accessibilityRole="header"
@@ -73,7 +73,7 @@ export function H1({ children, color, size = 32, style, ...rest }: TextKitProps)
 }
 
 export function H2({ children, color, size = 20, style, ...rest }: TextKitProps) {
-  const colors = useHauntColors();
+  const colors = useHuntColors();
   return (
     <Text
       accessibilityRole="header"
@@ -94,7 +94,7 @@ export function H2({ children, color, size = 20, style, ...rest }: TextKitProps)
 }
 
 export function Sub({ children, color, size = 15, style, ...rest }: TextKitProps) {
-  const colors = useHauntColors();
+  const colors = useHuntColors();
   return (
     <Text
       {...rest}
@@ -120,7 +120,7 @@ export function Body({
   style,
   ...rest
 }: TextKitProps & { weight?: 'regular' | 'semibold' | 'bold' | 'extra' }) {
-  const colors = useHauntColors();
+  const colors = useHuntColors();
   const family = {
     regular: 'BricolageGrotesque_400Regular',
     semibold: 'BricolageGrotesque_600SemiBold',
@@ -147,7 +147,7 @@ export function Mono({
   style,
   ...rest
 }: TextKitProps & { medium?: boolean }) {
-  const colors = useHauntColors();
+  const colors = useHuntColors();
   return (
     <Text
       {...rest}
@@ -167,7 +167,7 @@ export function Mono({
 
 /** Points text: `+10 photo · +20 video`, `40 pts`. */
 export function Pts({ children, color, size = 13, style, ...rest }: TextKitProps) {
-  const colors = useHauntColors();
+  const colors = useHuntColors();
   return (
     <Text
       {...rest}
@@ -186,7 +186,7 @@ export function Pts({ children, color, size = 13, style, ...rest }: TextKitProps
 }
 
 export function Wordmark({ size = 22 }: { size?: number }) {
-  const colors = useHauntColors();
+  const colors = useHuntColors();
   const dot = Math.round(size * 0.32);
   return (
     <View
@@ -231,7 +231,7 @@ export function ScribbleUnderline({
   color?: string;
   style?: StyleProp<ViewStyle>;
 }) {
-  const colors = useHauntColors();
+  const colors = useHuntColors();
   return (
     <View style={[{ position: 'relative', alignSelf: 'flex-start' }, style]}>
       {children}
@@ -250,7 +250,7 @@ export function ScribbleUnderline({
 
 /** Orange scribble loop drawn around a number. */
 export function ScribbleCircle({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
-  const colors = useHauntColors();
+  const colors = useHuntColors();
   return (
     <View style={[{ position: 'relative', alignSelf: 'flex-start' }, style]}>
       <Svg

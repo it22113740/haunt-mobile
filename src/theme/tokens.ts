@@ -3,7 +3,7 @@
  * - `journal` (system dark): warm paper, ink outlines, hard offset shadows.
  * - `white` (system light): clean white surfaces, hairlines, soft shadows.
  */
-export type HauntVariant = 'journal' | 'white';
+export type HuntVariant = 'journal' | 'white';
 
 const shared = {
   accent: '#FC6401',
@@ -12,7 +12,7 @@ const shared = {
   danger: '#A3392A',
 };
 
-export const hauntTokens = {
+export const huntTokens = {
   journal: {
     ...shared,
     paper: '#F5F1E8',

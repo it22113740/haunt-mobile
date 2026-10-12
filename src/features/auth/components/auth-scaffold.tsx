@@ -20,7 +20,7 @@ type AuthScaffoldProps = {
 export function AuthScaffold({ title, subtitle, children, footer, onBack, illustration }: AuthScaffoldProps) {
   const insets = useSafeAreaInsets();
   return (
-    <ScreenEnter className="flex-1 bg-haunt-paper">
+    <ScreenEnter className="flex-1 bg-hunt-paper">
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView keyboardShouldPersistTaps="handled" style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }}>
           <View

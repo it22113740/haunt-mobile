@@ -21,7 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const slides: { name: IllustrationName; title: string; body: string }[] = [
   {
     name: 'onb-discover',
-    title: 'Find your next haunt',
+    title: 'Find your next hunt',
     body: 'Discover restaurants and bars near you that reward you for showing up.',
   },
   {
@@ -70,7 +70,7 @@ export function SlidesScreen() {
   const goRole = () => router.push('/(onboarding)/role');
 
   return (
-    <ScreenEnter className="flex-1 bg-haunt-paper" style={{ paddingTop: insets.top + 12 }}>
+    <ScreenEnter className="flex-1 bg-hunt-paper" style={{ paddingTop: insets.top + 12 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20 }}>
         <Wordmark />
         <Pressable accessibilityRole="button" onPress={goRole} hitSlop={8} style={{ height: 44, justifyContent: 'center' }}>

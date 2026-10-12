@@ -76,7 +76,7 @@ export function PermissionsScreen() {
 
   return (
     <ScreenEnter
-      className="flex-1 bg-haunt-paper"
+      className="flex-1 bg-hunt-paper"
       style={{
         justifyContent: 'space-between',
         paddingHorizontal: 20,

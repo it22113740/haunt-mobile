@@ -8,7 +8,7 @@ import { Platform } from 'react-native';
 type NotificationsModule = typeof import('expo-notifications');
 
 const EXPO_GO_ANDROID_MESSAGE =
-  'Push notifications need a Haunt development build. Expo Go on Android cannot receive them.';
+  'Push notifications need a Hunt development build. Expo Go on Android cannot receive them.';
 
 export function pushAvailable(): boolean {
   return !(Platform.OS === 'android' && isRunningInExpoGo());
@@ -54,7 +54,7 @@ function readProjectId(): string | null {
 
 export async function enablePushNotifications(requestPermission: boolean): Promise<Profile> {
   if (Platform.OS === 'web') {
-    throw new Error('Push notifications run in the Haunt app on iPhone and Android.');
+    throw new Error('Push notifications run in the Hunt app on iPhone and Android.');
   }
   if (!pushAvailable()) {
     throw new Error(EXPO_GO_ANDROID_MESSAGE);
@@ -70,7 +70,7 @@ export async function enablePushNotifications(requestPermission: boolean): Promi
 
   if (Platform.OS === 'android') {
     await notifications.setNotificationChannelAsync('default', {
-      name: 'Haunt',
+      name: 'Hunt',
       importance: notifications.AndroidImportance.DEFAULT,
     });
   }

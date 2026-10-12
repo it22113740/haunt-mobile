@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 import type { ViewStyle } from 'react-native';
-import { useHauntTheme, type HauntColors } from '@/theme/colors';
-import type { HauntVariant } from '@/theme/tokens';
+import { useHuntTheme, type HuntColors } from '@/theme/colors';
+import type { HuntVariant } from '@/theme/tokens';
 
-export type HauntSurfaces = ReturnType<typeof buildSurfaces>;
+export type HuntSurfaces = ReturnType<typeof buildSurfaces>;
 
-function buildSurfaces(variant: HauntVariant, colors: HauntColors) {
+function buildSurfaces(variant: HuntVariant, colors: HuntColors) {
   const journal = variant === 'journal';
   const hardShadow = (offset: number): ViewStyle => ({ boxShadow: `0px ${offset}px 0px ${colors.ink}` });
   const liftShadow: ViewStyle = { boxShadow: '0px 8px 24px -10px rgba(24,24,26,0.18)' };
@@ -63,7 +63,7 @@ function buildSurfaces(variant: HauntVariant, colors: HauntColors) {
 }
 
 export function useSurfaces() {
-  const { variant, colors, isJournal, isWhite } = useHauntTheme();
+  const { variant, colors, isJournal, isWhite } = useHuntTheme();
   const surfaces = useMemo(() => buildSurfaces(variant, colors), [variant, colors]);
   return { variant, colors, isJournal, isWhite, surfaces };
 }

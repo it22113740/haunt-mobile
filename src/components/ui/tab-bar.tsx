@@ -1,5 +1,5 @@
 import { hapticLight } from '@/components/ui/press';
-import { useHauntTheme } from '@/theme/colors';
+import { useHuntTheme } from '@/theme/colors';
 import type { BottomTabBarProps } from 'expo-router/build/react-navigation/bottom-tabs';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,7 +21,7 @@ type FloatingTabBarProps = BottomTabBarProps & {
 };
 
 export function FloatingTabBar({ state, descriptors, navigation, raisedRoute }: FloatingTabBarProps) {
-  const { colors, isJournal } = useHauntTheme();
+  const { colors, isJournal } = useHuntTheme();
   const insets = useSafeAreaInsets();
   const height = useBarHeight();
 

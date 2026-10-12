@@ -48,7 +48,7 @@ export function RegisterScreen() {
 
   return (
     <AuthScaffold
-      title="Join Haunt"
+      title="Join Hunt"
       subtitle={
         role === 'USER'
           ? 'Collect points at the restaurants and bars you keep coming back to.'

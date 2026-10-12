@@ -9,7 +9,7 @@ export async function savePushToken(pushToken: string): Promise<Profile> {
 
 export async function sendTestPush(): Promise<TestPushResult> {
   const { data } = await api.post<unknown>('/notifications/test-push', {
-    title: 'Haunt',
+    title: 'Hunt',
     body: 'If you see this, push delivery works.',
   });
   return testPushResultSchema.parse(data);

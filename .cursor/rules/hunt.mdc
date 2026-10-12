@@ -1,9 +1,9 @@
 ---
-description: Haunt Rewards mobile app rules
+description: Hunt Rewards mobile app rules
 alwaysApply: true
 ---
 # Project
-Expo + TypeScript mobile client for the Haunt Rewards NestJS API (location-based rewards for restaurants/bars).
+Expo + TypeScript mobile client for the Hunt Rewards NestJS API (location-based rewards for restaurants/bars).
 Two roles in one app: OWNER and USER. Role comes from GET /auth/me after login.
 
 # Stack (do not swap)

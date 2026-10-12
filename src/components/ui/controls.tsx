@@ -4,7 +4,7 @@ import { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reani
 import { MotionView } from '@/components/ui/animated';
 import { PressScale } from '@/components/ui/press-scale';
 import { hapticLight } from '@/components/ui/press';
-import { useHauntTheme } from '@/theme/colors';
+import { useHuntTheme } from '@/theme/colors';
 
 const TRACK_W = 52;
 const KNOB = 23;
@@ -21,7 +21,7 @@ export function Toggle({
   disabled?: boolean;
   accessibilityLabel: string;
 }) {
-  const { colors } = useHauntTheme();
+  const { colors } = useHuntTheme();
   const progress = useSharedValue(value ? 1 : 0);
 
   useEffect(() => {
@@ -74,7 +74,7 @@ export function Segmented<T extends string>({
   value: T;
   onChange: (next: T) => void;
 }) {
-  const { colors } = useHauntTheme();
+  const { colors } = useHuntTheme();
   return (
     <View
       accessibilityRole="tablist"
@@ -136,7 +136,7 @@ export type StatItem = {
 
 /** Three-column mono stats strip ruled top and bottom. */
 export function StatStrip({ items }: { items: StatItem[] }) {
-  const { colors, isJournal } = useHauntTheme();
+  const { colors, isJournal } = useHuntTheme();
   const rule = isJournal ? { width: 1.5, color: colors.ink } : { width: 1, color: colors.line };
   return (
     <View

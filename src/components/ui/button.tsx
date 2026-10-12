@@ -1,5 +1,5 @@
 import { PressScale } from '@/components/ui/press-scale';
-import { useHauntTheme } from '@/theme/colors';
+import { useHuntTheme } from '@/theme/colors';
 import type { ReactNode } from 'react';
 import { ActivityIndicator, Text, type ViewStyle } from 'react-native';
 
@@ -28,7 +28,7 @@ export function Button({
   className,
   accessibilityHint,
 }: ButtonProps) {
-  const { colors, isJournal } = useHauntTheme();
+  const { colors, isJournal } = useHuntTheme();
   const inactive = Boolean(loading || disabled);
   const off = Boolean(disabled && !loading) && variant !== 'ghost';
   const shadowOffset = size === 'sm' ? 2 : 3;
