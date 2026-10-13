@@ -1,56 +1,47 @@
 import { PinPickerFrame, type PinPickerProps } from '@/features/owner/components/pin-picker-frame';
-import { MapPin, sketchStyle } from '@/features/venues/components/map-style';
+import { Mono } from '@/components/ui/typography';
+import { SketchMap } from '@/features/venues/components/sketch-map';
+import { isExpoGo } from '@/lib/expo-go';
 import { useHuntColors } from '@/theme/colors';
-import { Platform } from 'react-native';
-import MapView, { Circle, Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+import { lazy, Suspense } from 'react';
+import { View } from 'react-native';
 
-export function PinPicker({ lat, lng, radiusMeters, onChange }: PinPickerProps) {
-  const delta = Math.max((radiusMeters / 111000) * 6, 0.01);
+// Loaded lazily: MapLibre's native module is missing from Expo Go and throws on import.
+const PinPickerLibre = lazy(() =>
+  import('@/features/owner/components/pin-picker-libre').then((module) => ({ default: module.PinPickerLibre })),
+);
+
+export function PinPicker(props: PinPickerProps) {
   const colors = useHuntColors();
 
+  if (isExpoGo) {
+    return (
+      <PinPickerFrame lat={props.lat} lng={props.lng} onChange={props.onChange} typedByDefault>
+        <View>
+          <SketchMap height={230} />
+          <View
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              left: 10,
+              right: 10,
+              bottom: 10,
+              paddingHorizontal: 10,
+              paddingVertical: 6,
+              borderRadius: 8,
+              backgroundColor: colors.card,
+              borderWidth: 1,
+              borderColor: colors.line,
+            }}>
+            <Mono size={11}>Preview only in Expo Go. Type the coordinates below.</Mono>
+          </View>
+        </View>
+      </PinPickerFrame>
+    );
+  }
   return (
-    <PinPickerFrame lat={lat} lng={lng} onChange={onChange}>
-      <MapView
-        provider={PROVIDER_DEFAULT}
-        style={{ height: 230, width: '100%', backgroundColor: colors.mapBg }}
-        mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
-        customMapStyle={Platform.OS === 'android' ? sketchStyle(colors) : undefined}
-        showsPointsOfInterests={false}
-        toolbarEnabled={false}
-        accessibilityLabel="Map with a pin and the check-in circle. Drag the pin to your door."
-        initialRegion={{
-          latitude: lat,
-          longitude: lng,
-          latitudeDelta: delta,
-          longitudeDelta: delta,
-        }}
-        onPress={(event) =>
-          onChange({
-            lat: event.nativeEvent.coordinate.latitude,
-            lng: event.nativeEvent.coordinate.longitude,
-          })
-        }>
-        <Circle
-          center={{ latitude: lat, longitude: lng }}
-          radius={radiusMeters}
-          strokeColor={colors.accentDeep}
-          strokeWidth={1.5}
-          lineDashPattern={[5, 4]}
-          fillColor="rgba(252,100,1,0.12)"
-        />
-        <Marker
-          coordinate={{ latitude: lat, longitude: lng }}
-          anchor={{ x: 0.5, y: 1 }}
-          draggable
-          onDragEnd={(event) =>
-            onChange({
-              lat: event.nativeEvent.coordinate.latitude,
-              lng: event.nativeEvent.coordinate.longitude,
-            })
-          }>
-          <MapPin colors={colors} />
-        </Marker>
-      </MapView>
-    </PinPickerFrame>
+    <Suspense fallback={<View style={{ height: 230, backgroundColor: colors.mapBg }} />}>
+      <PinPickerLibre {...props} />
+    </Suspense>
   );
 }

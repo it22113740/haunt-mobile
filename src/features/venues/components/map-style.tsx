@@ -1,28 +1,92 @@
 import type { HuntColors } from '@/theme/colors';
+import type { StyleSpecification } from '@maplibre/maplibre-react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 
-type MapStyleRule = {
-  elementType?: string;
-  featureType?: string;
-  stylers: Record<string, string>[];
-};
+const MAJOR_ROADS = ['motorway', 'trunk', 'primary', 'secondary', 'tertiary'];
+const MINOR_ROADS = ['minor', 'service', 'track'];
 
-/** Google Maps (Android) styling that mirrors the sketch-map palette. Apple Maps uses `mutedStandard`. */
-export function sketchStyle(colors: HuntColors): MapStyleRule[] {
-  return [
-    { elementType: 'geometry', stylers: [{ color: colors.mapBg }] },
-    { elementType: 'labels', stylers: [{ visibility: 'off' }] },
-    { featureType: 'water', elementType: 'labels.text', stylers: [{ visibility: 'on' }] },
-    { elementType: 'labels.text.fill', stylers: [{ color: colors.mapLabel }] },
-    { elementType: 'labels.text.stroke', stylers: [{ color: colors.mapBg }] },
-    { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-    { featureType: 'transit', stylers: [{ visibility: 'off' }] },
-    { featureType: 'road', elementType: 'geometry', stylers: [{ color: colors.mapRoadSoft }] },
-    { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: colors.mapRoad }] },
-    { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: colors.mapRoad }] },
-    { featureType: 'road', elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
-    { featureType: 'water', elementType: 'geometry', stylers: [{ color: colors.mapWater }] },
-  ];
+/** OpenStreetMap vector tiles (OpenFreeMap) drawn in the sketch-map palette, without labels. */
+export function sketchMapStyle(colors: HuntColors): StyleSpecification {
+  return {
+    version: 8,
+    sources: {
+      openmaptiles: { type: 'vector', url: 'https://tiles.openfreemap.org/planet' },
+    },
+    layers: [
+      { id: 'background', type: 'background', paint: { 'background-color': colors.mapBg } },
+      {
+        id: 'park',
+        type: 'fill',
+        source: 'openmaptiles',
+        'source-layer': 'park',
+        paint: { 'fill-color': colors.mapWater, 'fill-opacity': 0.45 },
+      },
+      {
+        id: 'water',
+        type: 'fill',
+        source: 'openmaptiles',
+        'source-layer': 'water',
+        paint: { 'fill-color': colors.mapWater },
+      },
+      {
+        id: 'waterway',
+        type: 'line',
+        source: 'openmaptiles',
+        'source-layer': 'waterway',
+        paint: { 'line-color': colors.mapWater, 'line-width': 1.5 },
+      },
+      {
+        id: 'building',
+        type: 'fill',
+        source: 'openmaptiles',
+        'source-layer': 'building',
+        minzoom: 15,
+        paint: { 'fill-color': colors.mapRoadSoft, 'fill-opacity': 0.5 },
+      },
+      {
+        id: 'road-minor',
+        type: 'line',
+        source: 'openmaptiles',
+        'source-layer': 'transportation',
+        filter: ['in', ['get', 'class'], ['literal', MINOR_ROADS]],
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: {
+          'line-color': colors.mapRoadSoft,
+          'line-width': ['interpolate', ['linear'], ['zoom'], 12, 0.5, 15, 2, 18, 8],
+        },
+      },
+      {
+        id: 'road-major',
+        type: 'line',
+        source: 'openmaptiles',
+        'source-layer': 'transportation',
+        filter: ['in', ['get', 'class'], ['literal', MAJOR_ROADS]],
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: {
+          'line-color': colors.mapRoad,
+          'line-width': ['interpolate', ['linear'], ['zoom'], 8, 0.8, 13, 2, 16, 5, 18, 12],
+        },
+      },
+    ],
+  };
+}
+
+/** Zoom that frames a check-in circle the way the old map deltas did. */
+export function zoomForRadius(radiusMeters: number) {
+  const delta = Math.max((radiusMeters / 111000) * 6, 0.01);
+  return Math.min(Math.max(Math.log2(360 / delta) + 0.45, 3), 18);
+}
+
+/** GeoJSON polygon approximating a circle of `radiusMeters` around a point. */
+export function circlePolygon(lat: number, lng: number, radiusMeters: number, steps = 64): GeoJSON.Feature {
+  const latRadius = radiusMeters / 111320;
+  const lngRadius = radiusMeters / (111320 * Math.cos((lat * Math.PI) / 180));
+  const ring: [number, number][] = [];
+  for (let i = 0; i <= steps; i += 1) {
+    const angle = (i / steps) * 2 * Math.PI;
+    ring.push([lng + lngRadius * Math.cos(angle), lat + latRadius * Math.sin(angle)]);
+  }
+  return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } };
 }
 
 /** Orange teardrop pin; anchor it at the bottom centre (`{ x: 0.5, y: 1 }`). */

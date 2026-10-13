@@ -149,7 +149,7 @@ export function VenueForm({ venue, origin, onSaved }: VenueFormProps) {
         <FormSection
           step="02"
           title="Where it counts"
-          hint="Drag the pin to your door. Guests have to be inside the circle for a visit to count."
+          hint="Move the map until the pin sits on your door, or tap the spot. Guests have to be inside the circle for a visit to count."
           gap={14}>
           <Controller
             control={form.control}

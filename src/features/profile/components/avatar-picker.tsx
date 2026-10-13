@@ -78,9 +78,9 @@ export function AvatarPicker({ profile }: AvatarPickerProps) {
               },
             ]}>
             {upload.isPending ? (
-              <ActivityIndicator size="small" color={colors.ink} />
+              <ActivityIndicator size="small" color={colors.onAccent} />
             ) : (
-              <CameraIcon color={colors.ink} size={16} strokeWidth={2} />
+              <CameraIcon color={colors.onAccent} size={16} strokeWidth={2} />
             )}
           </View>
         </Pressable>

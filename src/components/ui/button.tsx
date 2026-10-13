@@ -9,8 +9,6 @@ type ButtonProps = {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   size?: 'lg' | 'md' | 'sm';
   leftIcon?: ReactNode;
-  /** Overrides the variant's label colour. */
-  labelColor?: string;
   loading?: boolean;
   disabled?: boolean;
   className?: string;
@@ -25,7 +23,6 @@ export function Button({
   variant = 'primary',
   size = 'lg',
   leftIcon,
-  labelColor,
   loading,
   disabled,
   className,
@@ -79,8 +76,6 @@ export function Button({
     surface = { backgroundColor: 'transparent' };
     textColor = colors.ink;
   }
-  if (labelColor && !off) textColor = labelColor;
-
   return (
     <PressScale
       accessibilityRole="button"

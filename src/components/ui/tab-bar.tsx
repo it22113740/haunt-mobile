@@ -79,7 +79,7 @@ export function FloatingTabBar({ state, descriptors, navigation, raisedRoute }: 
                     ? { borderWidth: 1.5, borderColor: colors.ink, boxShadow: `0px 3px 0px ${colors.ink}` }
                     : { boxShadow: '0px 8px 18px -6px rgba(252,100,1,0.55)' }),
                 }}>
-                {options.tabBarIcon?.({ focused, color: colors.ink, size: 22 })}
+                {options.tabBarIcon?.({ focused, color: colors.onAccent, size: 22 })}
               </View>
             ) : (
               options.tabBarIcon?.({ focused, color, size: 22 })

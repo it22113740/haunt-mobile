@@ -30,7 +30,7 @@ export function IconButton({ icon: Icon, label, onPress, color, size = 44, fille
         filled ? { backgroundColor: colors.accent } : null,
         style,
       ]}>
-      <Icon color={color ?? colors.ink} size={Math.round(size * 0.44)} strokeWidth={1.9} />
+      <Icon color={color ?? (filled ? colors.onAccent : colors.ink)} size={Math.round(size * 0.44)} strokeWidth={1.9} />
     </PressScale>
   );
 }

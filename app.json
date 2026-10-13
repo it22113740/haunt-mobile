@@ -86,12 +86,7 @@
         }
       ],
       "expo-video",
-      [
-        "react-native-maps",
-        {
-          "androidGoogleMapsApiKey": "AIzaSyAKA99jWK6_cPOSyKlhRtwpak8MxwrmO5M"
-        }
-      ]
+      "@maplibre/maplibre-react-native"
     ],
     "experiments": {
       "typedRoutes": true,
