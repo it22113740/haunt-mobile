@@ -1,20 +1,22 @@
 import { CachedImage } from '@/components/cached-image';
 import { Tape } from '@/components/ui/decor';
+import { MotionView } from '@/components/ui/animated';
+import { PressScale } from '@/components/ui/press-scale';
 import { Mono } from '@/components/ui/typography';
-import { useHauntTheme } from '@/theme/colors';
+import { useHuntTheme } from '@/theme/colors';
 import { StatusBar } from 'expo-status-bar';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { X } from 'lucide-react-native';
 import { useEffect, type ReactNode } from 'react';
-import { Modal, Pressable, View } from 'react-native';
+import { Modal, View } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type MediaViewerProps = {
   url: string | null;
   kind: 'PHOTO' | 'VIDEO' | null;
-  onClose: () => void; 
+  onClose: () => void;
   /** Mono caption at the top right, e.g. `1 of 1`. */
   counter?: string;
   /** Content pinned under the media (e.g. the review actions). */
@@ -23,34 +25,34 @@ type MediaViewerProps = {
 
 export function MediaViewer({ url, kind, onClose, counter = '1 of 1', footer }: MediaViewerProps) {
   const insets = useSafeAreaInsets();
-  const { colors, isWhite } = useHauntTheme();
+  const { colors, isWhite } = useHuntTheme();
   const translateY = useSharedValue(0);
   const visible = Boolean(url && kind);
 
   useEffect(() => {
-    if (visible) translateY.value = 0;
+    if (visible) translateY.set(0);
   }, [translateY, visible]);
 
   const pan = Gesture.Pan()
     .onUpdate((event) => {
-      if (event.translationY > 0) translateY.value = event.translationY;
+      if (event.translationY > 0) translateY.set(event.translationY);
     })
     .onEnd((event) => {
       if (event.translationY > 120) {
         runOnJS(onClose)();
         return;
       }
-      translateY.value = withSpring(0);
+      translateY.set(withSpring(0));
     });
 
-  const sheet = useAnimatedStyle(() => ({ transform: [{ translateY: translateY.value }] }));
+  const sheet = useAnimatedStyle(() => ({ transform: [{ translateY: translateY.get() }] }));
 
   return (
     <Modal visible={visible} animationType="fade" statusBarTranslucent onRequestClose={onClose}>
       <StatusBar style="light" />
       <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.viewerBg }}>
         <GestureDetector gesture={pan}>
-          <Animated.View style={[{ flex: 1, backgroundColor: colors.viewerBg, paddingTop: insets.top + 18 }, sheet]}>
+          <MotionView style={[{ flex: 1, backgroundColor: colors.viewerBg, paddingTop: insets.top + 18 }, sheet]}>
             <View
               style={{
                 flexDirection: 'row',
@@ -58,11 +60,11 @@ export function MediaViewer({ url, kind, onClose, counter = '1 of 1', footer }: 
                 justifyContent: 'space-between',
                 paddingHorizontal: 18,
               }}>
-              <Pressable
+              <PressScale
                 accessibilityRole="button"
                 accessibilityLabel="Close"
                 onPress={onClose}
-                style={({ pressed }) => ({
+                style={{
                   width: 44,
                   height: 44,
                   borderRadius: 99,
@@ -70,10 +72,9 @@ export function MediaViewer({ url, kind, onClose, counter = '1 of 1', footer }: 
                   borderColor: colors.viewerBorder,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  opacity: pressed ? 0.7 : 1,
-                })}>
+                }}>
                 <X color={colors.viewerText} size={18} strokeWidth={2} />
-              </Pressable>
+              </PressScale>
               <Mono size={12} color={colors.viewerMute}>
                 {counter}
               </Mono>
@@ -112,7 +113,7 @@ export function MediaViewer({ url, kind, onClose, counter = '1 of 1', footer }: 
             ) : (
               <View style={{ height: insets.bottom + 16 }} />
             )}
-          </Animated.View>
+          </MotionView>
         </GestureDetector>
       </GestureHandlerRootView>
     </Modal>
