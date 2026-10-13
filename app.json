@@ -4,11 +4,11 @@
     "slug": "hunt-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/app-icon.png",
     "scheme": "huntmobile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/images/icon.png",
+      "icon": "./assets/images/app-icon.png",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Hunt uses your location to find nearby restaurants and bars.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Hunt uses your location in the background to notice when you arrive at a place and tell you about points you can earn.",
@@ -21,7 +21,6 @@
     },
     "android": {
       "package": "com.hunt.mobile",
-      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "backgroundColor": "#F5F1E8",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -85,14 +84,23 @@
           "cameraPermission": "Hunt uses your camera to capture a visit."
         }
       ],
-      "expo-video"
+      "expo-video",
+      [
+        "react-native-maps",
+        {
+          "androidGoogleMapsApiKey": "AIzaSyAKA99jWK6_cPOSyKlhRtwpak8MxwrmO5M"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
     "extra": {
-      "router": {}
+      "router": {},
+      "eas": {
+        "projectId": "7ef7d80d-f5eb-4a91-ad13-32d4330fa151"
+      }
     },
     "owner": "santa07"
   }
