@@ -8,6 +8,7 @@ type EmptyStateProps = {
   title: string;
   detail?: string;
   action?: string;
+  actionLabelColor?: string;
   onPress?: () => void;
   /** Picks the doodle drawn above the message. */
   illustration?: IllustrationName;
@@ -27,7 +28,15 @@ const doodleFor: Partial<Record<IllustrationName, DoodleKind>> = {
   'success-sent': 'heart',
 };
 
-export function EmptyState({ title, detail, action, onPress, illustration = 'onb-discover', note }: EmptyStateProps) {
+export function EmptyState({
+  title,
+  detail,
+  action,
+  actionLabelColor,
+  onPress,
+  illustration = 'onb-discover',
+  note,
+}: EmptyStateProps) {
   const kind = doodleFor[illustration] ?? 'compass';
   return (
     <View style={{ alignItems: 'center', paddingHorizontal: 24, paddingVertical: 36, gap: 10 }}>
@@ -43,7 +52,7 @@ export function EmptyState({ title, detail, action, onPress, illustration = 'onb
       {note ? <Hand>{note}</Hand> : null}
       {action && onPress ? (
         <View style={{ marginTop: 10, alignSelf: 'stretch' }}>
-          <Button label={action} onPress={onPress} />
+          <Button label={action} labelColor={actionLabelColor} onPress={onPress} />
         </View>
       ) : null}
     </View>

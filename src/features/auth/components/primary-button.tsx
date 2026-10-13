@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { useHuntTheme } from '@/theme/colors';
 
 type PrimaryButtonProps = {
   label: string;
@@ -8,5 +9,14 @@ type PrimaryButtonProps = {
 };
 
 export function PrimaryButton({ label, onPress, loading, disabled }: PrimaryButtonProps) {
-  return <Button label={label} onPress={onPress} loading={loading} disabled={disabled} />;
+  const { isWhite } = useHuntTheme();
+  return (
+    <Button
+      label={label}
+      onPress={onPress}
+      loading={loading}
+      disabled={disabled}
+      labelColor={isWhite ? '#FFFFFF' : undefined}
+    />
+  );
 }

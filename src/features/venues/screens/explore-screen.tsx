@@ -223,6 +223,7 @@ export function ExploreScreen() {
                   : 'Check back once owners publish a place.'
             }
             action={!filtering && explore.source === 'near' ? 'See all venues' : undefined}
+            actionLabelColor={isWhite ? '#FFFFFF' : undefined}
             onPress={!filtering && explore.source === 'near' ? () => setBrowseAll(true) : undefined}
           />
         }

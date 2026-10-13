@@ -21,8 +21,14 @@ export function AuthScaffold({ title, subtitle, children, footer, onBack, illust
   const insets = useSafeAreaInsets();
   return (
     <ScreenEnter className="flex-1 bg-hunt-paper">
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView keyboardShouldPersistTaps="handled" style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }}>
+      {/* Edge-to-edge Android no longer resizes the window for the keyboard, so pad on both platforms. */}
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+          showsVerticalScrollIndicator={false}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ flexGrow: 1 }}>
           <View
             style={{
               flexGrow: 1,

@@ -24,7 +24,13 @@
     "production": {
       "autoIncrement": true,
       "environment": "production",
-      "channel": "production"
+      "channel": "production",
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://rewards-app-backend-production-42a0.up.railway.app"
+      }
     }
   },
   "submit": {
