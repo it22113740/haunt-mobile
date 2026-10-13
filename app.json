@@ -21,6 +21,7 @@
     },
     "android": {
       "package": "com.hunt.mobile",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#F5F1E8",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
